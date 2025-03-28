@@ -13,9 +13,5 @@ using MyProject, Test, BenchmarkTools
     n_dim = length(P2)
     @test PHI(P2, n_dim) == PHI_original(P2, n_dim)
 
-    # b2_1 = @benchmark PHI(P2, n_dim)
-    # b2_2 = @benchmark PHI_original(P2, n_dim)
-
-    # display(b2_1)
-    # display(b2_2)
+    @test PHI_original(P2, 3) == Nothing
 end

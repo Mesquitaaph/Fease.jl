@@ -2,7 +2,7 @@ module MyProject
 
 export format_num, measure_func
 
-export examples
+export examples, RunValues
 
 export BaseTypes, LocalBases
 
@@ -26,6 +26,7 @@ include("examples.jl")
 include("bases.jl")
 
 include("serial.jl")
+# include("FEM2D.jl")
 
 include("convergence.jl")
 
