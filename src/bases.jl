@@ -11,3 +11,7 @@ LocalBases = (
     Lag3 = (ne) -> (type = BaseTypes.cubicLagrange, p = 3, nB = 4, neq = 3*ne - 1),
     Her3 = (ne) -> (type = BaseTypes.cubicHermite, p = 3, nB = 4, neq = 2*ne)
 )
+
+function monta_base(baseType, ne)
+    return LocalBases[Symbol(baseType)](ne)
+end

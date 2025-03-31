@@ -53,8 +53,6 @@ struct RunValues
   alpha:: Float64
   beta:: Float64
   gamma:: Float64
-  a:: Float64
-  b:: Float64
   f:: Function
   u:: Function
 end

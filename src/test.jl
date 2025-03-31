@@ -1,12 +1,14 @@
 function single_run(example)
   alpha, beta, gamma, a, b, u, u_x, f = examples(example); ne = 2^3
 
-  run_values = RunValues(alpha, beta, gamma, a, b, f, u)
+  run_values = RunValues(alpha, beta, gamma, f, u)
 
   baseType = BaseTypes.linearLagrange
-  base = LocalBases[Symbol(baseType)](ne)
+  base = monta_base(baseType, ne)
 
-  C, EQoLG, xPTne = solveSys(run_values, base, ne)
+  malha = monta_malha(ne, base, a, b)
+
+  C, EQoLG, xPTne = solveSys(run_values, malha)
 
   return C
 end

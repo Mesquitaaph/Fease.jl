@@ -2,9 +2,11 @@ module MyProject
 
 export format_num, measure_func
 
+export Malha, monta_malha
+
 export examples, RunValues
 
-export BaseTypes, LocalBases
+export BaseTypes, LocalBases, monta_base
 
 export solveSys, PHI, PHI_original
 
@@ -21,9 +23,11 @@ using
 
 include("utils.jl")
 
-include("examples.jl")
-
 include("bases.jl")
+
+include("malha.jl")
+
+include("examples.jl")
 
 include("serial.jl")
 # include("FEM2D.jl")
