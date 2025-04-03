@@ -18,7 +18,7 @@ export single_run
 # Dependencias do modulo
 using 
   BenchmarkTools, GaussQuadrature, Plots, BandedMatrices, Printf, 
-  DataFrames, Latexify, Statistics, SparseArrays
+  DataFrames, Latexify, Statistics, SparseArrays, LinearAlgebra
 
 
 include("utils.jl")
