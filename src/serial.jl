@@ -54,25 +54,26 @@ function montaK(run_values::RunValues, malha)
 end
 
 function montaF(run_values::RunValues, malha::Malha)
-  (; dx, ne, neq, X, EQoLG) = malha
+  (; dx, ne, neq, coords, EQoLG) = malha
   (; f) = run_values
   
+  X = coords[1]
   npg = 5
 
-  phiP, P, W = avaliar_quadratura(PHI_original, npg, 2, 1)
+  phiP, P, W = avaliar_quadratura(ϕ_1D, npg, 2, 1)
   
   F = zeros(neq+1)
   xPTne = zeros(npg, ne)
   for e in 1:ne
-      for ksi in 1:npg
-          @inbounds fxptne = f(xksi(P[ksi], e, X))
-          @inbounds xPTne[ksi, e] = fxptne
-          for a in 1:2
-              @inbounds partial = dx/2 * W[ksi] * phiP[ksi, a]
-              @inbounds i = EQoLG[a, e]
-              @inbounds F[i] += partial * fxptne
-          end
+    for ksi in 1:npg
+      @inbounds fxptne = f(xksi(P[ksi], e, X))
+      @inbounds xPTne[ksi, e] = fxptne
+      for a in 1:2
+        @inbounds i = EQoLG[a, e]
+
+        @inbounds F[i] += W[ksi] * fxptne * phiP[ksi, a] * dx/2
       end
+    end
   end
 
   return F[1:neq], xPTne

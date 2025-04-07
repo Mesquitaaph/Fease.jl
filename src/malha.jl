@@ -2,7 +2,7 @@ struct Malha
   base
   ne::Int64
   neq::Int64
-  X
+  coords
   dx
   EQ
   LG
@@ -115,17 +115,19 @@ function monta_EQ_2D(Nx1::Int64, Nx2::Int64)
   # Atribui os valores de 1 até m as funções globais φ que compõem a base do espaço Vₘ
   EQ[L] = 1:m
 
-  return EQ
+  return m, EQ
 end
 
-function monta_malha(ne, base, a, b)
+function monta_malha_1D_uniforme(ne, base, a, b)
   dx = 1/ne;
   X = a:dx:b
 
   neq = base.neq
 
-  EQ = montaEQ(ne, neq, base); LG = montaLG(ne, base)
+  EQ = montaEQ_geral(ne); LG = montaLG_geral(ne)
   EQoLG = EQ[LG]
 
-  return Malha(base, ne, neq, X, dx, EQ, LG, EQoLG, a, b)
+  coords = (;X)
+
+  return Malha(base, ne, neq, coords, dx, EQ, LG, EQoLG, a, b)
 end
