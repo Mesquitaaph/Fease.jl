@@ -1,39 +1,3 @@
-function PHI_original(P, n_dim=1)
-  if n_dim == 1
-    return 2.0^-n_dim * [
-      1-P[1],
-      1+P[1]
-    ]
-  elseif n_dim == 2
-    return 2.0^-n_dim * [
-      (1-P[1]) * (1-P[2]),
-      (1+P[1]) * (1-P[2]),
-      (1-P[1]) * (1+P[2]),
-      (1+P[1]) * (1+P[2]),
-    ]
-  else
-    return Nothing
-  end
-end
-
-function dPHI(P, n_dim=1)
-  if n_dim == 1
-    return 2.0^-n_dim * [
-      -1,
-      1
-    ]
-  elseif n_dim == 2
-    return 2.0^-n_dim * [
-      (1-P[1]) * (1-P[2]),
-      (1+P[1]) * (1-P[2]),
-      (1-P[1]) * (1+P[2]),
-      (1+P[1]) * (1+P[2]),
-    ]
-  else
-    return error("Dimensão não implementada")
-  end
-end
-
 function avaliar_quadratura(base_func::Function, npg::Int64, n_funcs::Int64, n_dim::Int64)
   P, W = legendre(npg)
 
@@ -57,8 +21,8 @@ function montaK(run_values::RunValues, malha)
 
   npg = 2
   
-  phiP, P, W = avaliar_quadratura(PHI_original, npg, 2, 1)
-  dphiP, P, W = avaliar_quadratura(dPHI, npg, 2, 1)
+  phiP, P, W = avaliar_quadratura(ϕ_1D, npg, 2, 1)
+  dphiP, P, W = avaliar_quadratura(∇ϕ_1D, npg, 2, 1)
 
   Ke = zeros(Float64, 2, 2)
   for a in 1:2
