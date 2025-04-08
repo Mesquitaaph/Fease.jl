@@ -37,6 +37,7 @@ include("generalizado.jl")
 
 include("convergence.jl")
 
-include("test.jl")
+include("testes/testes_malha.jl")
+include("testes/testes_simulacao.jl")
 
 end
