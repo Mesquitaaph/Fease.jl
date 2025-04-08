@@ -71,7 +71,14 @@ function monta_Kᵉ_quadrilatero!(Kᵉ::Matrix{Float64}, α::Float64, β::Float6
   end
 end
 
-function monta_K_quadrilatero(α::Float64, β::Float64, X₁::AbstractArray{Float64}, X₂::AbstractArray{Float64}, m::Int64, EQ::Vector{Int64}, LG::Matrix{Int64})::SparseMatrixCSC{Float64, Int64}
+function monta_K_quadrilatero(run_values::RunValues, malha::Malha)::SparseMatrixCSC{Float64, Int64}
+  (;alpha, beta) = run_values
+  α, β = alpha, beta
+
+  (;coords, neq, EQ, LG) = malha
+  X₁, X₂ = coords
+  m = neq
+  
   # Número de elementos na malha
   ne = size(LG, 2)
 
@@ -463,56 +470,6 @@ function solução_aproximada_vs_exata_quadrilatero()
 end
 
 # solução_aproximada_vs_exata_quadrilatero()
-
-function single_run_2D()
-  # Carrega os parâmetros de entrada da EDP
-  α, β, f, u = exemplo1()
-	
-	# Define parâmetros da malha e monta a estrutura inicial
-  Nx1, Nx2 = 4, 3
-  X₁, X₂, h₁, h₂ = malha2D(Nx1, Nx2)
-  m, EQ = monta_EQ_2D(Nx1, Nx2); 
-	LG = monta_LG_2D(Nx1, Nx2);
-
-	display("Exemplo 1: Malha uniforme de retângulos")
-
-  # Monta matriz K, vetor F e resolve o sistema linear Kc = F
-  K = monta_K_quadrilatero(α, β, X₁, X₂, m, EQ, LG)
-  F = monta_F_quadrilatero(f, X₁, X₂, m, EQ, LG)
-  c = K \ F
-  
-  correct_result_ex1 = [
-    0.659197679603509
-    0.9322462987801567
-    0.659197679603509
-    0.6591976796035091
-    0.9322462987801565
-    0.659197679603509
-  ]
-  
-  display(c == correct_result_ex1)
-
-	# Exemplo 2: Malha com ruído nos nós internos
-	display("Exemplo 2: Adiciona ruído nos nós internos")
- 	Random.seed!(42)  # Define uma semente para reprodutibilidade
-	malha2D_adiciona_ruido!(X₁, X₂, h₁, h₂)
-
-  # Monta novamente K, F e resolve o sistema com a malha perturbada
-  K = monta_K_quadrilatero(α, β, X₁, X₂, m, EQ, LG)
-  F = monta_F_quadrilatero(f, X₁, X₂, m, EQ, LG)
-  c = K \ F
-
-  correct_result_ex2 = [
-    0.7065102277637031
-    0.969014464383587
-    0.6584488958892918
-    0.7346980208325475
-    0.8893466262809584
-    0.7082557097977525
-  ]
-    
-  display(c == correct_result_ex2)
-end
 
 # single_run_2D()
 

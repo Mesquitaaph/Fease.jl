@@ -83,7 +83,7 @@ function montaEQ_geral(Nx1::Int64, Nx2::Int64 = 0)
     end
   end
 
-  return EQ
+  return neq, EQ
 end
 
 function montaEQ(ne, neq, base)
@@ -130,4 +130,27 @@ function monta_malha_1D_uniforme(ne, base, a, b)
   coords = (;X)
 
   return Malha(base, ne, neq, coords, dx, EQ, LG, EQoLG, a, b)
+end
+
+function monta_malha_2D_uniforme(base, Nx1, Nx2, a::Tuple, b::Tuple)::Malha
+  # Define o comprimento da base (h₁) e altura (h₂) de cada elemento retangular Ωᵉ
+  h₁, h₂ = 1 / Nx1, 1 / Nx2
+  h = (h₁, h₂)
+
+  ne = Nx1 * Nx2
+  
+  # Define a discretização em x₁ e x₂
+  x₁ = collect(a[1]:h₁:b[1])
+  x₂ = collect(a[2]:h₂:b[2])
+
+  # Define as coordenadas de cada nó da malha
+  X₁ = [x₁[i] for i in 1:Nx1+1, j in 1:Nx2+1]
+  X₂ = [x₂[j] for i in 1:Nx1+1, j in 1:Nx2+1]
+
+  neq, EQ = montaEQ_geral(Nx1, Nx2); LG = montaLG_geral(Nx1, Nx2)
+  EQoLG = EQ[LG]
+
+  coords = (;X₁, X₂)
+
+  return Malha(base, ne, neq, coords, h, EQ, LG, EQoLG, a, b)
 end
