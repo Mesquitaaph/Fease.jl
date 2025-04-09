@@ -1,13 +1,28 @@
 function avaliar_quadratura_geral(base_func::Function, npg::Int64, n_funcs::Int64, n_dim::Int64)
-  P, W = legendre(npg)
+  p, w = legendre(npg)
 
-  phiP = zeros(npg, n_funcs)
-  for a in 1:n_funcs
-      for ksi in 1:npg
-          phiP[ksi, a] = base_func(P[ksi], n_dim)[a]
-      end
+  P = Vector{Tuple}(undef, npg^n_dim)
+  W = similar(P)
+
+  for i in 1:npg^n_dim
+    ponto = ()
+    peso = ()
+    for d in 1:n_dim
+      idx_global = floor((2.0^(n_dim-d) + i-1) * 2.0^-(n_dim-d))
+      idx = Int((idx_global-1) % npg)+1
+      ponto = (ponto..., p[idx])
+      peso = (peso..., w[idx])
+    end
+    P[i] = ponto
+    W[i] = peso
   end
-  return phiP, P, W
+
+  ϕP = zeros(npg^n_dim, n_funcs^n_dim)
+  for ξ in 1:npg^n_dim
+    ϕP[ξ, :] .= base_func(P[ξ]...)
+  end
+
+  return ϕP, P, W
 end
 
 function xksi_geral(ksi, e, X)
@@ -21,16 +36,17 @@ function montaK_geral(run_values::RunValues, malha)
 
   npg = 2
   
-  phiP, P, W = avaliar_quadratura_geral(ϕ_1D, npg, 2, 1)
+  phiP, P, W = avaliar_quadratura_geral(ϕ_geral, npg, 2, 1)
   dphiP, P, W = avaliar_quadratura_geral(∇ϕ_1D, npg, 2, 1)
 
   Ke = zeros(Float64, 2, 2)
   for a in 1:2
       for b in 1:2
           for ksi in 1:npg
-              @inbounds parcelaNormal = beta*dx/2 * W[ksi] * phiP[ksi, a] * phiP[ksi, b];
-              @inbounds parcelaDerivada1 = gamma * W[ksi] * phiP[ksi, a] * dphiP[ksi, b];
-              @inbounds parcelaDerivada2 = 2*alpha/dx * W[ksi] * dphiP[ksi, a] * dphiP[ksi, b];
+              WW = prod(W[ksi])
+              @inbounds parcelaNormal = beta*dx/2 * WW * phiP[ksi, a] * phiP[ksi, b];
+              @inbounds parcelaDerivada1 = gamma * WW * phiP[ksi, a] * dphiP[ksi, b];
+              @inbounds parcelaDerivada2 = 2*alpha/dx * WW * dphiP[ksi, a] * dphiP[ksi, b];
 
               @inbounds Ke[a,b] += parcelaDerivada2 + parcelaNormal + parcelaDerivada1
           end
@@ -59,17 +75,18 @@ function montaFᵉ_geral!(Fᵉ, f, Xe, P, W, ϕξ, ∇ϕξ, n_dim)
 
   npg = length(P)
   for i in 1:npg
+    vec_∂ϕ_∂ξ₁ = ∇ϕξ[i,:]
+
     vec_ϕ = ϕξ[i,:]
 
     x = dot(X1e, vec_ϕ)
-
-    vec_∂ϕ_∂ξ₁ = ∇ϕξ[i,:]
     
     detJ = dot(X1e, vec_∂ϕ_∂ξ₁)
     @assert detJ > 0 "O determinante jacobiano deve ser positivo"
 
+    WW = prod(W[i])
     for a in 1:2^n_dim
-      @inbounds Fᵉ[a] += W[i] * f(x) * ϕξ[i, a] * detJ
+      @inbounds Fᵉ[a] += WW * f(x) * ϕξ[i, a] * detJ
     end
   end
 end
@@ -81,7 +98,7 @@ function montaF_geral(run_values::RunValues, malha::Malha)
   
   npg = 5
 
-  ϕξ, P, W = avaliar_quadratura_geral(ϕ_1D, npg, 2, 1)
+  ϕξ, P, W = avaliar_quadratura_geral(ϕ_geral, npg, 2, 1)
   ∇ϕξ, P, W = avaliar_quadratura_geral(∇ϕ_1D, npg, 2, 1)
   
   F = zeros(neq+1)
@@ -112,7 +129,7 @@ end
 function solveSys_geral(run_values::RunValues, malha::Malha)
   K = montaK_geral(run_values, malha)
 
-  F, xPTne = montaF_geral(run_values.f, malha)
+  F, xPTne = montaF_geral(run_values, malha)
 
   # display("Matriz K RAPHAEL:")
   # display(K)
