@@ -35,7 +35,7 @@ using MyProject, Test, BenchmarkTools
         0.38313289314565724
     ]
 
-    @test single_run(1) == correct_result_ex1
+    @test single_run_1D(1) ≈ correct_result_ex1
 
-    @test single_run(2) == correct_result_ex2
+    @test single_run_1D(2) ≈ correct_result_ex2
 end

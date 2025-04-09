@@ -12,7 +12,7 @@ export solveSys, PHI, PHI_original
 
 export convergence_test!
 
-export single_run
+export single_run_1D
 
 
 # Dependencias do modulo

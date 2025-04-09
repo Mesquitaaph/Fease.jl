@@ -122,9 +122,7 @@ function monta_malha_1D_uniforme(ne, base, a, b)
   dx = 1/ne;
   X = a:dx:b
 
-  neq = base.neq
-
-  EQ = montaEQ_geral(ne); LG = montaLG_geral(ne)
+  neq, EQ = montaEQ_geral(ne); LG = montaLG_geral(ne)
   EQoLG = EQ[LG]
 
   coords = (;X)
