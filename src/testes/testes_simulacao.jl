@@ -33,9 +33,9 @@ function single_run_1D(example)
   return C
 end
 
-function ≈(v1, v2)
-  return all(1e-15 .> (v1 - v2))
-end
+# function ≈(v1, v2)
+#   return all(1e-15 .> (v1 - v2))
+# end
 
 # display(single_run_1D(1) ≈ correct_result_ex1)
 # display(single_run_1D(2) ≈ correct_result_ex2)
@@ -96,4 +96,4 @@ function single_run_2D()
   display(c ≈ correct_result_ex2)
 end
 
-single_run_2D()
+# single_run_2D()
