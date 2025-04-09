@@ -154,3 +154,30 @@ function monta_malha_2D_uniforme(base, Nx1, Nx2, a::Tuple, b::Tuple)::Malha
 
   return Malha(base, ne, neq, coords, h, EQ, LG, EQoLG, a, b)
 end
+
+function malha2D_adiciona_ruido(malha::Malha)::Malha
+  (;X₁, X₂) = malha.coords
+  (;h₁, h₂) = malha.dx
+  # Verifica se as matrizes têm a mesma dimensão
+  @assert size(X₁) == size(X₂) "X₁ e X₂ devem ter as mesmas dimensões"
+  
+  # Verifica se a malha é suficientemente grande para ter nós internos
+  if size(X₁, 1) > 2 && size(X₁, 2) > 2
+    # Define os limites do ruído
+    ruído_limite₁, ruído_limite₂ = h₁ / 4, h₂ / 4
+    
+    # Aplica ruído uniforme aos nós internos
+    X₁[2:end-1, 2:end-1] .+= ruído_limite₁ * 
+              (rand(Float64, size(X₁[2:end-1,2:end-1])) .- 0.5) * 2
+    X₂[2:end-1, 2:end-1] .+= ruído_limite₂ * 
+                        (rand(Float64, size(X₂[2:end-1,2:end-1])) .- 0.5) * 2
+  end
+
+  return Malha(
+    malha.base, 
+    malha.ne, malha.neq, 
+    (X₁, X₂), malha.dx, 
+    malha.EQ, malha.LG, malha.EQoLG,
+    malha.a, malha.b
+  )
+end

@@ -73,15 +73,15 @@ function single_run_2D()
   ]
   
   display(c ≈ correct_result_ex1)
-  return
+  
 	# Exemplo 2: Malha com ruído nos nós internos
 	display("Exemplo 2: Adiciona ruído nos nós internos")
  	Random.seed!(42)  # Define uma semente para reprodutibilidade
-	malha2D_adiciona_ruido!(X₁, X₂, h₁, h₂)
+	malha = malha2D_adiciona_ruido(malha)
 
   # Monta novamente K, F e resolve o sistema com a malha perturbada
   K = monta_K_quadrilatero(run_values, malha)
-  F = monta_F_quadrilatero(f, X₁, X₂, m, EQ, LG)
+  F = monta_F_quadrilatero(run_values, malha)
   c = K \ F
 
   correct_result_ex2 = [
