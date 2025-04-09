@@ -3,9 +3,9 @@ function avaliar_quadratura(base_func::Function, npg::Int64, n_funcs::Int64, n_d
 
   phiP = zeros(npg, n_funcs)
   for a in 1:n_funcs
-      for ksi in 1:npg
-          phiP[ksi, a] = base_func(P[ksi], n_dim)[a]
-      end
+    for ksi in 1:npg
+      phiP[ksi, a] = base_func(P[ksi])[a]
+    end
   end
   return phiP, P, W
 end

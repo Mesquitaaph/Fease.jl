@@ -11,7 +11,8 @@ function ϕ_geral(P...) # Varargs
   return phis
 end
 
-function ϕ_1D(P, n_dim=1)
+function ϕ_1D(P...)
+  n_dim = length(P)
   if n_dim == 1
     return 2.0^-n_dim * [
       1-P[1],
@@ -61,7 +62,8 @@ end
   
 # end
 
-function ∇ϕ_1D(P, n_dim=1)
+function ∇ϕ_1D(P...)
+  n_dim = length(P)
   if n_dim == 1
     return 2.0^-n_dim * [
       -1,
