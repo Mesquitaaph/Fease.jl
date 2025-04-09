@@ -97,3 +97,54 @@ function single_run_2D()
 end
 
 # single_run_2D()
+
+function test_monta_F_1D()
+  example = 1 # ou 2
+  alpha, beta, gamma, a, b, u, u_x, f = examples(example); ne = 2^3
+
+  run_values = RunValues(alpha, beta, gamma, f, u)
+
+  baseType = BaseTypes.linearLagrange
+  base = monta_base(baseType, ne)
+
+  malha = monta_malha_1D_uniforme(ne, base, a, b)
+
+  F_1D, xPTne = montaF(run_values, malha)
+  F_geral, xPTne = montaF_geral(run_values, malha)
+
+  display("Caso 1D: Exemplo 1")
+  display(F_1D ≈ F_geral)
+end
+test_monta_F_1D()
+
+
+function test_monta_F_2D()
+  # Carrega os parâmetros de entrada da EDP
+  α, β, f, u = exemplo1()
+
+  run_values = RunValues(α, β, 0.0, f, u)
+
+	# Define parâmetros da malha e monta a estrutura inicial
+  Nx1, Nx2 = 4, 3
+
+  baseType = BaseTypes.linearLagrange
+  base = monta_base(baseType, Nx1*Nx2)
+  
+  a = (0.0, 0.0); b = (1.0, 1.0)
+  malha = monta_malha_2D_uniforme(base, Nx1, Nx2, a ,b)
+
+	display("Exemplo 1: Malha uniforme de retângulos")
+  F = monta_F_quadrilatero(run_values, malha)
+  
+  correct_result_2D = [
+    0.9164924375447934
+    1.2961160349882237
+    0.9164924375447934
+    0.9164924375447936
+    1.296116034988224
+    0.9164924375447936
+  ]
+
+  display(F ≈ correct_result_2D)
+end
+# test_monta_F_2D()

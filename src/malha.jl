@@ -9,6 +9,7 @@ struct Malha
   EQoLG::Matrix{Int64}
   a
   b
+  n_dim
 end
 
 function montaLG_geral(Nx1::Int64, Nx2::Int64 = 0)
@@ -120,14 +121,14 @@ end
 
 function monta_malha_1D_uniforme(ne, base, a, b)
   dx = 1/ne;
-  X = a:dx:b
+  X = collect(a:dx:b)
 
   neq, EQ = montaEQ_geral(ne); LG = montaLG_geral(ne)
   EQoLG = EQ[LG]
 
   coords = (;X)
-
-  return Malha(base, ne, neq, coords, dx, EQ, LG, EQoLG, a, b)
+  n_dim = 1
+  return Malha(base, ne, neq, coords, dx, EQ, LG, EQoLG, a, b, n_dim)
 end
 
 function monta_malha_2D_uniforme(base, Nx1, Nx2, a::Tuple, b::Tuple)::Malha
@@ -149,8 +150,9 @@ function monta_malha_2D_uniforme(base, Nx1, Nx2, a::Tuple, b::Tuple)::Malha
   EQoLG = EQ[LG]
 
   coords = (;X₁, X₂)
+  n_dim = 2
 
-  return Malha(base, ne, neq, coords, h, EQ, LG, EQoLG, a, b)
+  return Malha(base, ne, neq, coords, h, EQ, LG, EQoLG, a, b, n_dim)
 end
 
 function malha2D_adiciona_ruido(malha::Malha)::Malha

@@ -53,8 +53,9 @@ function montaK_geral(run_values::RunValues, malha)
   return sparse(K)
 end
 
-function montaFᵉ_geral!(Fᵉ, f, X1e, P, W, ϕξ, ∇ϕξ)
+function montaFᵉ_geral!(Fᵉ, f, Xe, P, W, ϕξ, ∇ϕξ, n_dim)
   fill!(Fᵉ, 0.0)
+  X1e = Xe[1]
 
   npg = length(P)
   for i in 1:npg
@@ -67,15 +68,16 @@ function montaFᵉ_geral!(Fᵉ, f, X1e, P, W, ϕξ, ∇ϕξ)
     detJ = dot(X1e, vec_∂ϕ_∂ξ₁)
     @assert detJ > 0 "O determinante jacobiano deve ser positivo"
 
-    for a in 1:2
+    for a in 1:2^n_dim
       @inbounds Fᵉ[a] += W[i] * f(x) * ϕξ[i, a] * detJ
     end
   end
 end
 
-function montaF_geral(f, malha::Malha)
-  (; ne, neq, coords, LG, EQ, EQoLG) = malha
-  X = coords[1]
+function montaF_geral(run_values::RunValues, malha::Malha)
+  (;f) = run_values
+  (; ne, neq, coords, LG, EQ, n_dim) = malha
+  X = coords
   
   npg = 5
 
@@ -83,20 +85,22 @@ function montaF_geral(f, malha::Malha)
   ∇ϕξ, P, W = avaliar_quadratura_geral(∇ϕ_1D, npg, 2, 1)
   
   F = zeros(neq+1)
-  Fᵉ = zeros(4)
+  Fᵉ = zeros(2^n_dim)
 
   for e in 1:ne
     idx = LG[:,e]
     
     # Coordenadas dos vértices do elemento finito Ωᵉ
-    X1e = X[idx]
-    # X2e = X₂[idx]
+    Xe = ()
+    for d in 1:n_dim
+      Xe = (Xe..., X[d][idx])
+    end
     
     idx = EQ[idx]
     
-    montaFᵉ_geral!(Fᵉ, f, X1e, P, W, ϕξ, ∇ϕξ)
+    montaFᵉ_geral!(Fᵉ, f, Xe, P, W, ϕξ, ∇ϕξ, n_dim)
     
-    for a in 1:2
+    for a in 1:2^n_dim
       F[idx[a]] += Fᵉ[a]
     end
   end
