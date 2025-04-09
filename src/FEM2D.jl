@@ -18,9 +18,12 @@ function x₂_de_ξ(ξ₂::Float64, h₂::Float64, p₂::Float64)::Float64
 end
 
 ############### MONTA K ###############
-function monta_Kᵉ_quadrilatero!(Kᵉ::Matrix{Float64}, α::Float64, β::Float64,  X1e::Vector{Float64}, X2e::Vector{Float64},  P::Vector{Float64}, W::Vector{Float64})
+function monta_Kᵉ_quadrilatero!(Kᵉ::Matrix{Float64}, run_values::RunValues,  X1e::Vector{Float64}, X2e::Vector{Float64},  P::Vector{Float64}, W::Vector{Float64})
   # Zera as entradas da matriz local Kᵉ
   fill!(Kᵉ, 0.0)
+
+  (;alpha, beta) = run_values
+  α, β = alpha, beta
 
   # Loop de quadratura dupla (ξ₁, ξ₂) para integração gaussiana
   for i in 1:length(P)  # Pontos de quadratura no eixo ξ₁
@@ -72,9 +75,6 @@ function monta_Kᵉ_quadrilatero!(Kᵉ::Matrix{Float64}, α::Float64, β::Float6
 end
 
 function monta_K_quadrilatero(run_values::RunValues, malha::Malha)::SparseMatrixCSC{Float64, Int64}
-  (;alpha, beta) = run_values
-  α, β = alpha, beta
-
   (;coords, neq, EQ, LG) = malha
   X₁, X₂ = coords
   m = neq
@@ -104,7 +104,7 @@ function monta_K_quadrilatero(run_values::RunValues, malha::Malha)::SparseMatrix
     idx = EQ[idx]
 
     # Calcula a matriz local Kᵉ
-    monta_Kᵉ_quadrilatero!(Kᵉ, α, β, X1e, X2e, P, W)
+    monta_Kᵉ_quadrilatero!(Kᵉ, run_values, X1e, X2e, P, W)
 
     # Loop sobre as colunas (b) e linhas (a) da matriz local Kᵉ
     for b = 1:4
@@ -161,12 +161,16 @@ function monta_Fᵉ_quadrilatero!(Fᵉ::Vector{Float64}, f::Function, X1e::Vecto
   end
 end
 
-function monta_F_quadrilatero(
-	f::Function, X₁::AbstractArray{Float64}, X₂::AbstractArray{Float64}, 
-	m::Int64, EQ::Vector{Int64}, LG::Matrix{Int64}) :: Vector{Float64}
+function monta_F_quadrilatero(run_values::RunValues, malha::Malha)::Vector{Float64}
+	(;f) = run_values
+
+  X₁, X₂ = malha.coords
 	
+  m, EQ = malha.neq, malha.EQ
+	LG = malha.LG
+
   # Número total de elementos finitos na malha
-  ne = size(LG,2)
+  ne = malha.ne
 
   # Pontos e pesos de quadratura de Gauss-Legendre de ordem 5
   P, W = legendre(5)
@@ -358,34 +362,39 @@ end
 function teste_monta_K_quadrilatero()
 	display("Teste 1: Malha uniforme de retângulos")
 	α, β = 1.0, 1.0
-    Nx1, Nx2 = 4, 3
-    X₁, X₂, h₁, h₂ = malha2D(Nx1, Nx2)
-    m, EQ = monta_EQ_2D(Nx1, Nx2)
-    LG = monta_LG_2D(Nx1, Nx2)
+  run_values = RunValues(α, β, 0.0, ()->(), ()->())
+
+  Nx1, Nx2 = 4, 3
+
+  baseType = BaseTypes.linearLagrange
+  base = monta_base(baseType, Nx1*Nx2)
+  
+  a = (0.0, 0.0); b = (1.0, 1.0)
+  malha = monta_malha_2D_uniforme(base, Nx1, Nx2, a ,b)
 
 	# Monta a matriz K para a malha sem ruído
-	K = monta_K_quadrilatero(α, β, X₁, X₂, m, EQ, LG)
+	K = monta_K_quadrilatero(run_values, malha)
 
 	display("Parâmetros de entrada: α = 1.0; β = 1.0; Nx1 = 4; Nx2 = 3")
 	display("Resultado K:")
 	display(K)
 	display("─" ^ 40)  # Linha divisória
-
+  
 	# TESTE 2: Malha 4x3 com ruído nos nós internos
  	# Random.seed!(42)  # Define uma semente para reprodutibilidade
 	# malha2D_adiciona_ruido!(X₁, X₂, h₁, h₂)
-    X₁ = [0.0   0.0       0.0       0.0
-          0.25  0.266168  0.275391  0.25
-          0.5   0.493792  0.521668  0.5
-          0.75  0.747176  0.708237  0.75
-          1.0   1.0       1.0       1.0]
-    X₂ = [0.0   0.333333  0.666667  1.0
-          0.0   0.352246  0.633228  1.0
-          0.0   0.36139   0.693524  1.0
-          0.0   0.326172  0.689905  1.0
-          0.0   0.333333  0.666667  1.0]
-    # Recalcula K com a malha com ruído
-    K = monta_K_quadrilatero(α, β, X₁, X₂, m, EQ, LG)
+  X₁ = [0.0   0.0       0.0       0.0
+        0.25  0.266168  0.275391  0.25
+        0.5   0.493792  0.521668  0.5
+        0.75  0.747176  0.708237  0.75
+        1.0   1.0       1.0       1.0]
+  X₂ = [0.0   0.333333  0.666667  1.0
+        0.0   0.352246  0.633228  1.0
+        0.0   0.36139   0.693524  1.0
+        0.0   0.326172  0.689905  1.0
+        0.0   0.333333  0.666667  1.0]
+  # Recalcula K com a malha com ruído
+  K = monta_K_quadrilatero(α, β, X₁, X₂, m, EQ, LG)
 	display("Teste 2: Adiciona ruído nos nós internos")
 	display("X₁ =")
 	display(X₁)
@@ -417,18 +426,29 @@ end
 function solução_aproximada_vs_exata_quadrilatero()
   # Carrega os parâmetros de entrada da EDP
   α, β, f, u = exemplo1()
-	
+
+  run_values = RunValues(α, β, 0.0, f, u)
+
 	# Define parâmetros da malha e monta a estrutura inicial
   Nx1, Nx2 = 4, 3
-  X₁, X₂, h₁, h₂ = malha2D(Nx1, Nx2)
-  m, EQ = monta_EQ_2D(Nx1, Nx2); 
-	LG = monta_LG_2D(Nx1, Nx2);
+
+  baseType = BaseTypes.linearLagrange
+  base = monta_base(baseType, Nx1*Nx2)
+  
+  a = (0.0, 0.0); b = (1.0, 1.0)
+  malha = monta_malha_2D_uniforme(base, Nx1, Nx2, a ,b)
+
+  X₁, X₂ = malha.coords
+  h₁, h₂ = malha.dx
+	
+  m, EQ = malha.neq, malha.EQ
+	LG = malha.LG
 
 	display("Exemplo 1: Malha uniforme de retângulos")
 	display("Parâmetros de entrada: α = $α; β = $β; Nx1 = $Nx1; Nx2 = $Nx2")
 
   # Monta matriz K, vetor F e resolve o sistema linear Kc = F
-  K = monta_K_quadrilatero(α, β, X₁, X₂, m, EQ, LG)
+  K = monta_K_quadrilatero(run_values, malha)
   F = monta_F_quadrilatero(f, X₁, X₂, m, EQ, LG)
   c = K \ F
 

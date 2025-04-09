@@ -56,17 +56,11 @@ function single_run_2D()
   a = (0.0, 0.0); b = (1.0, 1.0)
   malha = monta_malha_2D_uniforme(base, Nx1, Nx2, a ,b)
 
-  X₁, X₂ = malha.coords
-  h₁, h₂ = malha.dx
-	
-  m, EQ = malha.neq, malha.EQ
-	LG = malha.LG
-
 	display("Exemplo 1: Malha uniforme de retângulos")
 
   # Monta matriz K, vetor F e resolve o sistema linear Kc = F
   K = monta_K_quadrilatero(run_values, malha)
-  F = monta_F_quadrilatero(f, X₁, X₂, m, EQ, LG)
+  F = monta_F_quadrilatero(run_values, malha)
   c = K \ F
   
   correct_result_ex1 = [

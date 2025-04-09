@@ -135,7 +135,7 @@ end
 function monta_malha_2D_uniforme(base, Nx1, Nx2, a::Tuple, b::Tuple)::Malha
   # Define o comprimento da base (h₁) e altura (h₂) de cada elemento retangular Ωᵉ
   h₁, h₂ = 1 / Nx1, 1 / Nx2
-  h = (h₁, h₂)
+  h = (;h₁, h₂)
 
   ne = Nx1 * Nx2
   
