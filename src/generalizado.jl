@@ -1,4 +1,4 @@
-function avaliar_quadratura_geral(base_func::Function, npg::Int64, n_funcs::Int64, n_dim::Int64)
+function quadratura_gauss(npg::Int64, n_dim::Int64)
   p, w = legendre(npg)
 
   P = Vector{Tuple}(undef, npg^n_dim)
@@ -8,7 +8,7 @@ function avaliar_quadratura_geral(base_func::Function, npg::Int64, n_funcs::Int6
     ponto = ()
     peso = ()
     for d in 1:n_dim
-      idx_global = floor((2.0^(n_dim-d) + i-1) * 2.0^-(n_dim-d))
+      idx_global = floor((Float64(npg)^(n_dim-d) + i-1) * Float64(npg)^-(n_dim-d))
       idx = Int((idx_global-1) % npg)+1
       ponto = (ponto..., p[idx])
       peso = (peso..., w[idx])
@@ -17,17 +17,37 @@ function avaliar_quadratura_geral(base_func::Function, npg::Int64, n_funcs::Int6
     W[i] = peso
   end
 
-  ϕP = zeros(npg^n_dim, n_funcs^n_dim)
-  for ξ in 1:npg^n_dim
-    ϕP[ξ, :] .= base_func(P[ξ]...)
-  end
-
-  return ϕP, P, W
+  return P, W
 end
 
-function xksi_geral(ksi, e, X)
-  h = X[e+1] - X[e]
-  return h/2*(ksi+1) + X[e]
+function avaliar_quadratura_geral_ϕ(base_func::Function, npg::Int64, n_funcs::Int64, n_dim::Int64)
+  P, W = quadratura_gauss(npg, n_dim)
+
+  ϕPₙ = ()
+  for d in 1:n_dim
+    ϕP = zeros(npg^n_dim, n_funcs^n_dim)
+    for ξ in 1:npg^n_dim
+      ϕP[ξ, :] .= base_func(P[ξ]...)[1]
+    end
+    ϕPₙ = (ϕPₙ..., ϕP)
+  end
+
+  return ϕPₙ, P, W
+end
+
+function avaliar_quadratura_geral(base_func::Function, npg::Int64, n_funcs::Int64, n_dim::Int64)
+  P, W = quadratura_gauss(npg, n_dim)
+
+  ϕPₙ = ()
+  for d in 1:n_dim
+    ϕP = zeros(npg^n_dim, n_funcs^n_dim)
+    for ξ in 1:npg^n_dim
+      ϕP[ξ, :] .= base_func(P[ξ]...)[d]
+    end
+    ϕPₙ = (ϕPₙ..., ϕP)
+  end
+
+  return ϕPₙ, P, W
 end
 
 function montaK_geral(run_values::RunValues, malha)
@@ -131,16 +151,9 @@ function solveSys_geral(run_values::RunValues, malha::Malha)
 
   F, xPTne = montaF_geral(run_values, malha)
 
-  # display("Matriz K RAPHAEL:")
-  # display(K)
-  # display("Vetor F RAPHAEL:")
-  # display(F)
-
   C = zeros(Float64, malha.neq)
 
   C .= K\F
-  # display("Solução aproximada U RAPHAEL:")
-  # display(C)
 
   F = nothing; K = nothing;
 
