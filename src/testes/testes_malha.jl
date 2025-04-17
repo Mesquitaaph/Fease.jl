@@ -108,6 +108,36 @@ test_∇ϕ()
 
 
 function test_avalia_quadratura_∇ϕ()
+  function avaliar_quadratura_geral_ϕ(base_func::Function, npg::Int64, n_funcs::Int64, n_dim::Int64)
+    P, W = quadratura_gauss(npg, n_dim)
+  
+    ϕPₙ = ()
+    for d in 1:n_dim
+      ϕP = zeros(npg^n_dim, n_funcs^n_dim)
+      for ξ in 1:npg^n_dim
+        ϕP[ξ, :] .= base_func(P[ξ]...)[1]
+      end
+      ϕPₙ = (ϕPₙ..., ϕP)
+    end
+  
+    return ϕPₙ, P, W
+  end
+  
+  function avaliar_quadratura_geral(base_func::Function, npg::Int64, n_funcs::Int64, n_dim::Int64)
+    P, W = quadratura_gauss(npg, n_dim)
+  
+    ϕPₙ = ()
+    for d in 1:n_dim
+      ϕP = zeros(npg^n_dim, n_funcs^n_dim)
+      for ξ in 1:npg^n_dim
+        ϕP[ξ, :] .= base_func(P[ξ]...)[d]
+      end
+      ϕPₙ = (ϕPₙ..., ϕP)
+    end
+  
+    return ϕPₙ, P, W
+  end
+
   println("Teste da avalia_quadratura para ∇ϕ")
   npg = 5
   

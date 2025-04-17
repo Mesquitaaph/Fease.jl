@@ -32,14 +32,15 @@ function quadratura_gauss(npg::Int64, n_dim::Int64)
   return P, W
 end
 
-function avaliar_quadratura_geral_ϕ(base_func::Function, npg::Int64, n_funcs::Int64, n_dim::Int64)
+function quadratura_ϕ(base, npg, n_dim)
   P, W = quadratura_gauss(npg, n_dim)
+  n_funcs = base.nB
 
   ϕPₙ = ()
   for d in 1:n_dim
     ϕP = zeros(npg^n_dim, n_funcs^n_dim)
     for ξ in 1:npg^n_dim
-      ϕP[ξ, :] .= base_func(P[ξ]...)[1]
+      ϕP[ξ, :] .= ϕ_geral(P[ξ]...)[1]
     end
     ϕPₙ = (ϕPₙ..., ϕP)
   end
@@ -47,14 +48,15 @@ function avaliar_quadratura_geral_ϕ(base_func::Function, npg::Int64, n_funcs::I
   return ϕPₙ, P, W
 end
 
-function avaliar_quadratura_geral(base_func::Function, npg::Int64, n_funcs::Int64, n_dim::Int64)
+function quadratura_∇ϕ(base, npg, n_dim)
   P, W = quadratura_gauss(npg, n_dim)
+  n_funcs = base.nB
 
   ϕPₙ = ()
   for d in 1:n_dim
     ϕP = zeros(npg^n_dim, n_funcs^n_dim)
     for ξ in 1:npg^n_dim
-      ϕP[ξ, :] .= base_func(P[ξ]...)[d]
+      ϕP[ξ, :] .= ∇ϕ_geral(P[ξ]...)[d]
     end
     ϕPₙ = (ϕPₙ..., ϕP)
   end
@@ -101,13 +103,13 @@ function montaKᵉ_geral!(Kᵉ, Xe, P, W, Φξ, ∇Φξ, n_dim, dx, run_values::
 end
 
 function montaK_geral(run_values::RunValues, malha::Malha)
-  (; ne, neq, dx, EQ, LG, n_dim, coords, Nx) = malha
+  (; ne, neq, dx, EQ, LG, n_dim, coords, Nx, base) = malha
   X = coords
 
   npg = 2
   
-  ϕξ, P, W = avaliar_quadratura_geral_ϕ(ϕ_geral, npg, 2, n_dim)
-  ∇ϕξ, P, W = avaliar_quadratura_geral(∇ϕ_geral, npg, 2, n_dim)
+  ϕξ, P, W = quadratura_ϕ(base, npg, n_dim)
+  ∇ϕξ, P, W = quadratura_∇ϕ(base, npg, n_dim)
   
   Kᵉ = zeros(Float64, 2^n_dim, 2^n_dim)
   band = Nx[1]
@@ -145,11 +147,11 @@ function montaFᵉ_geral!(Fᵉ, f, Xe, P, W, ϕξ, ∇ϕξ, n_dim)
 
   npg = length(P)
   for ξ in 1:npg
-    vec_ϕ = ϕξ[1][ξ,:]
+    ϕᵉ = ϕξ[1][ξ,:]
 
     x = ()
     for d in 1:n_dim
-      x = (x..., dot(Xe[d], vec_ϕ))
+      x = (x..., dot(Xe[d], ϕᵉ))
     end
     
     M, detJ = jacobiano(n_dim, Xe, ∇ϕξ, ξ)
@@ -157,20 +159,20 @@ function montaFᵉ_geral!(Fᵉ, f, Xe, P, W, ϕξ, ∇ϕξ, n_dim)
 
     WW = prod(W[ξ])
     for a in 1:2^n_dim
-      @inbounds Fᵉ[a] += WW * f(x...) * vec_ϕ[a] * detJ
+      @inbounds Fᵉ[a] += WW * f(x...) * ϕᵉ[a] * detJ
     end
   end
 end
 
 function montaF_geral(run_values::RunValues, malha::Malha)
   (;f) = run_values
-  (; ne, neq, coords, LG, EQ, n_dim) = malha
+  (; ne, neq, coords, LG, EQ, n_dim, base) = malha
   X = coords
   
   npg = 5
 
-  ϕξ, P, W = avaliar_quadratura_geral_ϕ(ϕ_geral, npg, 2, n_dim)
-  ∇ϕξ, P, W = avaliar_quadratura_geral(∇ϕ_geral, npg, 2, n_dim)
+  ϕξ, P, W = quadratura_ϕ(base, npg, n_dim)
+  ∇ϕξ, P, W = quadratura_∇ϕ(base, npg, n_dim)
   
   F = zeros(neq+1)
   Fᵉ = zeros(2^n_dim)
