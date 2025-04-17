@@ -8,16 +8,17 @@ function ϕ_geral(P...) # Varargs
     end
   end
 
-  return phis
+  return (;phis)
 end
 
 function ϕ_1D(P...)
   n_dim = length(P)
   if n_dim == 1
-    return 2.0^-n_dim * [
+    phis = 2.0^-n_dim * [
       1-P[1],
       1+P[1]
     ]
+    return (;phis)
   elseif n_dim == 2
     return 2.0^-n_dim * [
       (1-P[1]) * (1-P[2]),
@@ -39,43 +40,15 @@ function ϕ_2D(ξ₁::Float64, ξ₂::Float64) :: Vector{Float64}
   ]
 end
 
-# function ∇ϕ(P...)
-#   n_dim = length(P)
-
-#   function ∂ϕ_∂ξ₁(ξ₂::Float64)::Vector{Float64}
-#     return 2.0^-n_dim * [
-#       -(1-ξ₂), 
-#        (1-ξ₂), 
-#       -(1+ξ₂), 
-#        (1+ξ₂)
-#     ]
-#   end
-  
-#   function ∂ϕ_∂ξ₂(ξ₁::Float64)::Vector{Float64}
-#     return 2.0^-n_dim * [
-#       -(1-ξ₁), 
-#       -(1+ξ₁), 
-#        (1-ξ₁), 
-#        (1+ξ₁)
-#     ]
-#   end
-  
-# end
 
 function ∇ϕ_1D(P...)
   n_dim = length(P)
   if n_dim == 1
-    return 2.0^-n_dim * [
+    dphis = 2.0^-n_dim * [
       -1,
       1
     ]
-  elseif n_dim == 2
-    return 2.0^-n_dim * [
-      (1-P[1]) * (1-P[2]),
-      (1+P[1]) * (1-P[2]),
-      (1-P[1]) * (1+P[2]),
-      (1+P[1]) * (1+P[2]),
-    ]
+    return (;dphis)
   else
     return error("Dimensão não implementada")
   end
@@ -90,6 +63,19 @@ function ∂ϕ_∂ξ₂(ξ₁::Float64)::Vector{Float64}
   return [-(1-ξ₁)/4, -(1+ξ₁)/4, (1-ξ₁)/4, (1+ξ₁)/4]
 end
 
-# function ∇ϕ_2D(ξ₁::Float64, ξ₂::Float64)
-#   nothing
-# end
+function ∇ϕ_2D(ξ₁::Float64, ξ₂::Float64)
+  return (∂ϕ_∂ξ₁(ξ₂), ∂ϕ_∂ξ₂(ξ₁))
+end
+
+function ∇ϕ_geral(P...)
+  n_dim = length(P)
+
+  if n_dim == 1
+    return ∇ϕ_1D(P...)
+  elseif n_dim == 2
+    return ∇ϕ_2D(P...)
+  else
+    return error("Dimensão não implementada")
+  end
+
+end
