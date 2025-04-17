@@ -50,43 +50,119 @@ function avaliar_quadratura_geral(base_func::Function, npg::Int64, n_funcs::Int6
   return ϕPₙ, P, W
 end
 
-function montaK_geral(run_values::RunValues, malha)
+function montaKᵉ_geral!(Kᵉ, Xe, P, W, Φξ, ∇Φξ, n_dim, dx, run_values::RunValues)
+  fill!(Kᵉ, 0.0)
+
+  function ∇Φ(ξ, a)
+    return [∇Φξ[dim][ξ, a] for dim in 1:n_dim]
+  end
+  
   (; alpha, beta, gamma) = run_values
-  (; ne, neq, dx, EQoLG) = malha
+
+  npg = length(P)
+  for ξ in 1:npg
+    vec_Φ = Φξ[1][ξ,:]
+
+    M = Matrix{Float64}(undef, n_dim, n_dim)
+    for i in 1:n_dim
+      for j in 1:n_dim
+        M[i,j] = dot(Xe[i], ∇Φξ[j][ξ,:])
+      end
+    end
+
+    detJ = det(M)
+    @assert detJ > 0 "O determinante jacobiano deve ser positivo"
+    
+    M⁻¹ = inv(M)
+    Hᵀ = M⁻¹*detJ
+    H = transpose(Hᵀ)
+
+    WW = prod(W[ξ])
+    
+    for a in 1:2^n_dim
+      for b in 1:2^n_dim
+        ∇ϕᵉ_a = H/detJ * ∇Φ(ξ, a)
+        ∇ϕᵉ_b = H/detJ * ∇Φ(ξ, b)
+
+        parcelaDerivada2 = alpha * dot(∇ϕᵉ_b, ∇ϕᵉ_a) * detJ
+        @inbounds parcelaNormal = beta * vec_Φ[a] * vec_Φ[b] * detJ
+
+        @inbounds parcelaDerivada1 = 0 #gamma * vec_Φ[a] * ∇ϕᵉ_b
+
+        @inbounds Kᵉ[a,b] += WW * (parcelaDerivada2 + parcelaNormal + parcelaDerivada1)
+      end
+    end
+
+    # if n_dim == 1
+    #   for a in 1:2^n_dim
+    #     for b in 1:2^n_dim
+    #       ∇ϕᵉ_a = H/detJ * ∇Φ(ξ, a)
+    #       ∇ϕᵉ_b = H/detJ * ∇Φ(ξ, b)
+
+    #       parcelaDerivada2 = alpha * dot(∇ϕᵉ_b, ∇ϕᵉ_a) * detJ
+    #       @inbounds parcelaNormal = beta * vec_Φ[a] * vec_Φ[b] * detJ
+          
+    #       @inbounds parcelaDerivada1 = gamma * dot(vec_Φ[a], ∇ϕᵉ_b)
+
+    #       @inbounds Kᵉ[a,b] += WW * (parcelaDerivada2 + parcelaNormal + parcelaDerivada1)
+    #     end
+    #   end
+    # elseif n_dim == 2
+    #   for b in 1:2^n_dim
+    #     for a in 1:2^n_dim
+    #       ∇ϕᵉ_a = H/detJ * ∇Φ(ξ, a)
+    #       ∇ϕᵉ_b = H/detJ * ∇Φ(ξ, b)
+    #       parcelaDerivada = alpha * dot(∇ϕᵉ_b, ∇ϕᵉ_a) * detJ
+          
+    #       @inbounds parcelaNormal = beta * vec_Φ[b] * vec_Φ[a] * detJ
+
+    #       Kᵉ[a, b] += WW * ( parcelaNormal + parcelaDerivada)
+    #     end
+    #   end
+    # else
+    #   nothing
+    # end
+  end
+end
+
+function montaK_geral(run_values::RunValues, malha::Malha)
+  (; ne, neq, dx, EQ, LG, n_dim, coords, Nx) = malha
+  X = coords
 
   npg = 2
   
-  phiP, P, W = avaliar_quadratura_geral(ϕ_geral, npg, 2, 1)
-  dphiP, P, W = avaliar_quadratura_geral(∇ϕ_1D, npg, 2, 1)
-
-  Ke = zeros(Float64, 2, 2)
-  for a in 1:2
-      for b in 1:2
-          for ksi in 1:npg
-              WW = prod(W[ksi])
-              @inbounds parcelaNormal = beta*dx/2 * WW * phiP[ksi, a] * phiP[ksi, b];
-              @inbounds parcelaDerivada1 = gamma * WW * phiP[ksi, a] * dphiP[ksi, b];
-              @inbounds parcelaDerivada2 = 2*alpha/dx * WW * dphiP[ksi, a] * dphiP[ksi, b];
-
-              @inbounds Ke[a,b] += parcelaDerivada2 + parcelaNormal + parcelaDerivada1
-          end
-      end
-  end
-
-  K = BandedMatrix(Zeros(neq, neq), (1, 1))
+  ϕξ, P, W = avaliar_quadratura_geral_ϕ(ϕ_geral, npg, 2, n_dim)
+  ∇ϕξ, P, W = avaliar_quadratura_geral(∇ϕ_geral, npg, 2, n_dim)
+  
+  Kᵉ = zeros(Float64, 2^n_dim, 2^n_dim)
+  band = Nx[1]
+  K = BandedMatrix(Zeros(neq, neq), (band, band))
+  
   for e in 1:ne
-      for b in 1:2
-          @inbounds j = EQoLG[b, e]
-          for a in 1:2
-              @inbounds i = EQoLG[a, e]
-              if i <= neq && j <= neq
-                  @inbounds K[i,j] += Ke[a,b]
-              end
-          end
+    idx = LG[:,e]
+    
+    # Coordenadas dos vértices do elemento finito Ωᵉ
+    Xe = ()
+    for d in 1:n_dim
+      Xe = (Xe..., X[d][idx])
+    end
+    
+    idx = EQ[idx]
+
+    montaKᵉ_geral!(Kᵉ, Xe, P, W, ϕξ, ∇ϕξ, n_dim, dx, run_values)
+
+    for b in 1:2^n_dim
+      @inbounds j = idx[b]
+      for a in 1:2^n_dim
+        @inbounds i = idx[a]
+        if i <= neq && j <= neq
+          @inbounds K[i,j] += Kᵉ[a,b]
+        end
       end
+    end
   end
 
-  return sparse(K)
+  return dropzeros(sparse(K))
 end
 
 function montaFᵉ_geral!(Fᵉ, f, Xe, P, W, ϕξ, ∇ϕξ, n_dim)
