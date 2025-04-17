@@ -4,15 +4,15 @@ function test_montaLG()
   baseType = BaseTypes.linearLagrange
   base = monta_base(baseType, ne)
   LG_1D = montaLG(ne, base)
-  println("Teste montagem LG\n")
+  println("Teste montagem LG:")
 
-  println("LG 1D")
-  display(LG_1D == montaLG_geral(5))
+  LG1D = LG_1D == montaLG_geral(5)
+  println("LG 1D: $LG1D")
 
-  println("LG 2D")
-  display(monta_LG_2D(5, 4) == montaLG_geral(5, 4))
+  LG2D = monta_LG_2D(5, 4) == montaLG_geral(5, 4)
+  println("LG 2D: $LG2D")
 end
-# test_montaLG()
+test_montaLG()
 
 function test_montaEQ()
   ne = 5
@@ -21,27 +21,27 @@ function test_montaEQ()
   base = monta_base(baseType, ne)
   neq = base.neq
   EQ_1D = montaEQ(ne, neq, base)
-  println("\nTeste montagem EQ\n")
+  println("\nTeste montagem EQ:")
 
-  println("EQ 1D")  
-  display(EQ_1D == montaEQ_geral(5)[2])
+  EQ1D = EQ_1D == montaEQ_geral(5)[2]
+  println("EQ 1D: $EQ1D")
   # display(EQ_1D); display(montaEQ_geral(5))
 
-  println("\nEQ 2D")
-  display(monta_EQ_2D(5, 4)[2] == montaEQ_geral(5, 4)[2])
-  # display(monta_EQ_2D(5, 4)); display(montaEQ_geral(5, 4))
+  EQ2D = true
+  # display(monta_EQ_2D(5, 4)[2] == montaEQ_geral(5, 4)[2])
   for nx1 in 1:50
     for nx2 in 1:50
       if !(monta_EQ_2D(nx1, nx2)[2] == montaEQ_geral(nx1, nx2)[2])
-        display("Falha")
+        EQ2D = false
       end
     end
   end
+  println("EQ 2D: $EQ2D")
 end
-# test_montaEQ()
+test_montaEQ()
 
 function test_ϕ()
-  println("Teste da ϕ")
+  println("\nTeste da ϕ:")
   P, W = legendre(10)
 
   print("ϕ 1D: ")
@@ -60,7 +60,8 @@ function test_ϕ()
 
   for ξ₁ in P
     for ξ₂ in P
-      if !(ϕ_2D(ξ₁, ξ₂) == ϕ_geral(ξ₁, ξ₂))
+      # println("$(ϕ_2D(ξ₁, ξ₂)), $(ϕ_geral(ξ₁, ξ₂))")
+      if !(ϕ_2D(ξ₁, ξ₂) == ϕ_geral(ξ₁, ξ₂)[1])
         teste_2D = false
         break
       end
@@ -69,4 +70,65 @@ function test_ϕ()
   println(teste_2D ? "ok\n" : "nok\n")
 
 end
-# test_ϕ()
+test_ϕ()
+
+function test_∇ϕ()
+  println("Teste da ∇ϕ")
+  P, W = legendre(2)
+
+  print("∇ϕ 1D: ")
+  teste_1D = true
+
+  
+  for ξ₁ in P
+    if !(∇ϕ_1D(ξ₁) == ∇ϕ_geral(ξ₁))
+      teste_1D = false
+      break
+    end
+  end
+  println(teste_1D ? "ok" : "nok")
+
+  print("∇ϕ 2D: ")
+  teste_2D = true
+
+  for ξ₁ in P
+    for ξ₂ in P
+      ∂ϕ_∂ξ₁_2D, ∂ϕ_∂ξ₂_2D = ∇ϕ_2D(ξ₁, ξ₂)
+      ∂ϕ_∂ξ₁_geral, ∂ϕ_∂ξ₂_geral = ∇ϕ_geral(ξ₁, ξ₂)
+      if !(∂ϕ_∂ξ₁_2D == ∂ϕ_∂ξ₁_geral || ∂ϕ_∂ξ₂_2D == ∂ϕ_∂ξ₂_geral)
+        teste_2D = false
+        break
+      end
+    end
+  end
+  println(teste_2D ? "ok\n" : "nok\n")
+
+end
+test_∇ϕ()
+
+
+function test_avalia_quadratura_∇ϕ()
+  println("Teste da avalia_quadratura para ∇ϕ")
+  npg = 5
+  
+  print("ϕ 1D: ")
+  n_dim = 1
+  ∇ϕξ_1D, P_1D, W_1D = avaliar_quadratura_geral(∇ϕ_1D, npg, 2, n_dim)
+  ∇ϕξ_geral, P_geral, W_geral = avaliar_quadratura_geral(∇ϕ_geral, npg, 2, n_dim)
+
+  # display(∇ϕξ_1D)
+  # display(∇ϕξ_geral)
+  display(∇ϕξ_1D == ∇ϕξ_geral)
+
+  print("ϕ 2D: ")
+  n_dim = 2
+  ∇ϕξ_2D, P_2D, W_2D = avaliar_quadratura_geral(∇ϕ_2D, npg, 2, n_dim)
+  ∇ϕξ_geral, P_geral, W_geral = avaliar_quadratura_geral(∇ϕ_geral, npg, 2, n_dim)
+
+  # display(∇ϕξ_2D)
+  # display(∇ϕξ_geral)
+  display(∇ϕξ_2D == ∇ϕξ_geral)
+  # display(P_geral)
+end
+
+test_avalia_quadratura_∇ϕ()
