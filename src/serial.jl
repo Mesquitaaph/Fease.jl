@@ -16,7 +16,7 @@ function xksi(ksi, e, X)
 end
 
 function montaK(run_values::RunValues, malha)
-  (; alpha, beta, gamma) = run_values
+  (; α, β, γ) = run_values
   (; ne, neq, dx, EQoLG) = malha
 
   npg = 2
@@ -28,9 +28,9 @@ function montaK(run_values::RunValues, malha)
   for a in 1:2
       for b in 1:2
           for ksi in 1:npg
-              @inbounds parcelaNormal = beta*dx/2 * W[ksi] * phiP[ksi, a] * phiP[ksi, b];
-              @inbounds parcelaDerivada1 = gamma * W[ksi] * phiP[ksi, a] * dphiP[ksi, b];
-              @inbounds parcelaDerivada2 = 2*alpha/dx * W[ksi] * dphiP[ksi, a] * dphiP[ksi, b];
+              @inbounds parcelaNormal = β*dx/2 * W[ksi] * phiP[ksi, a] * phiP[ksi, b];
+              @inbounds parcelaDerivada1 = γ * W[ksi] * phiP[ksi, a] * dphiP[ksi, b];
+              @inbounds parcelaDerivada2 = 2*α/dx * W[ksi] * dphiP[ksi, a] * dphiP[ksi, b];
 
               @inbounds Ke[a,b] += parcelaDerivada2 + parcelaNormal + parcelaDerivada1
           end

@@ -22,8 +22,7 @@ function monta_Kᵉ_quadrilatero!(Kᵉ::Matrix{Float64}, run_values::RunValues, 
   # Zera as entradas da matriz local Kᵉ
   fill!(Kᵉ, 0.0)
 
-  (;alpha, beta) = run_values
-  α, β = alpha, beta
+  (;α, β) = run_values
 
   # Loop de quadratura dupla (ξ₁, ξ₂) para integração gaussiana
   for i in 1:length(P)  # Pontos de quadratura no eixo ξ₁

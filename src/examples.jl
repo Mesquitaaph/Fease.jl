@@ -50,9 +50,9 @@ function examples(case)
 end
 
 struct RunValues
-  alpha:: Float64
-  beta:: Float64
-  gamma:: Float64
+  α:: Float64
+  β:: Float64
+  γ:: Float64
   f:: Function
   u:: Function
 end

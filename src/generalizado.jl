@@ -1,3 +1,15 @@
+function jacobiano(n_dim, Xe, ∇Φξ, ξ)
+  M = Matrix{Float64}(undef, n_dim, n_dim)
+  for i in 1:n_dim
+    for j in 1:n_dim
+      M[i,j] = dot(Xe[i], ∇Φξ[j][ξ,:])
+    end
+  end
+  detJ = det(M)
+
+  return M, detJ
+end
+
 function quadratura_gauss(npg::Int64, n_dim::Int64)
   p, w = legendre(npg)
 
@@ -57,20 +69,13 @@ function montaKᵉ_geral!(Kᵉ, Xe, P, W, Φξ, ∇Φξ, n_dim, dx, run_values::
     return [∇Φξ[dim][ξ, a] for dim in 1:n_dim]
   end
   
-  (; alpha, beta, gamma) = run_values
+  (; α, β, γ) = run_values
 
   npg = length(P)
   for ξ in 1:npg
-    vec_Φ = Φξ[1][ξ,:]
+    ϕᵉ = Φξ[1][ξ,:]
 
-    M = Matrix{Float64}(undef, n_dim, n_dim)
-    for i in 1:n_dim
-      for j in 1:n_dim
-        M[i,j] = dot(Xe[i], ∇Φξ[j][ξ,:])
-      end
-    end
-
-    detJ = det(M)
+    M, detJ = jacobiano(n_dim, Xe, ∇Φξ, ξ)
     @assert detJ > 0 "O determinante jacobiano deve ser positivo"
     
     M⁻¹ = inv(M)
@@ -84,44 +89,14 @@ function montaKᵉ_geral!(Kᵉ, Xe, P, W, Φξ, ∇Φξ, n_dim, dx, run_values::
         ∇ϕᵉ_a = H/detJ * ∇Φ(ξ, a)
         ∇ϕᵉ_b = H/detJ * ∇Φ(ξ, b)
 
-        parcelaDerivada2 = alpha * dot(∇ϕᵉ_b, ∇ϕᵉ_a) * detJ
-        @inbounds parcelaNormal = beta * vec_Φ[a] * vec_Φ[b] * detJ
+        parcelaDerivada2 = α * dot(∇ϕᵉ_b, ∇ϕᵉ_a) * detJ
+        @inbounds parcelaNormal = β * ϕᵉ[a] * ϕᵉ[b] * detJ
 
-        @inbounds parcelaDerivada1 = 0 #gamma * vec_Φ[a] * ∇ϕᵉ_b
+        @inbounds parcelaDerivada1 = 0 #γ * vec_Φ[a] * ∇ϕᵉ_b
 
         @inbounds Kᵉ[a,b] += WW * (parcelaDerivada2 + parcelaNormal + parcelaDerivada1)
       end
     end
-
-    # if n_dim == 1
-    #   for a in 1:2^n_dim
-    #     for b in 1:2^n_dim
-    #       ∇ϕᵉ_a = H/detJ * ∇Φ(ξ, a)
-    #       ∇ϕᵉ_b = H/detJ * ∇Φ(ξ, b)
-
-    #       parcelaDerivada2 = alpha * dot(∇ϕᵉ_b, ∇ϕᵉ_a) * detJ
-    #       @inbounds parcelaNormal = beta * vec_Φ[a] * vec_Φ[b] * detJ
-          
-    #       @inbounds parcelaDerivada1 = gamma * dot(vec_Φ[a], ∇ϕᵉ_b)
-
-    #       @inbounds Kᵉ[a,b] += WW * (parcelaDerivada2 + parcelaNormal + parcelaDerivada1)
-    #     end
-    #   end
-    # elseif n_dim == 2
-    #   for b in 1:2^n_dim
-    #     for a in 1:2^n_dim
-    #       ∇ϕᵉ_a = H/detJ * ∇Φ(ξ, a)
-    #       ∇ϕᵉ_b = H/detJ * ∇Φ(ξ, b)
-    #       parcelaDerivada = alpha * dot(∇ϕᵉ_b, ∇ϕᵉ_a) * detJ
-          
-    #       @inbounds parcelaNormal = beta * vec_Φ[b] * vec_Φ[a] * detJ
-
-    #       Kᵉ[a, b] += WW * ( parcelaNormal + parcelaDerivada)
-    #     end
-    #   end
-    # else
-    #   nothing
-    # end
   end
 end
 
@@ -162,7 +137,7 @@ function montaK_geral(run_values::RunValues, malha::Malha)
     end
   end
 
-  return dropzeros(sparse(K))
+  return sparse(K)
 end
 
 function montaFᵉ_geral!(Fᵉ, f, Xe, P, W, ϕξ, ∇ϕξ, n_dim)
@@ -170,8 +145,6 @@ function montaFᵉ_geral!(Fᵉ, f, Xe, P, W, ϕξ, ∇ϕξ, n_dim)
 
   npg = length(P)
   for ξ in 1:npg
-    vec_∂ϕ_∂ξ₁ = ∇ϕξ[1][ξ,:]
-
     vec_ϕ = ϕξ[1][ξ,:]
 
     x = ()
@@ -179,14 +152,7 @@ function montaFᵉ_geral!(Fᵉ, f, Xe, P, W, ϕξ, ∇ϕξ, n_dim)
       x = (x..., dot(Xe[d], vec_ϕ))
     end
     
-    M_J = Matrix{Float64}(undef, n_dim, n_dim)
-    for i in 1:n_dim
-      for j in 1:n_dim
-        M_J[i,j] = dot(Xe[i], ∇ϕξ[j][ξ,:])
-      end
-    end
-
-    detJ = det(M_J)
+    M, detJ = jacobiano(n_dim, Xe, ∇ϕξ, ξ)
     @assert detJ > 0 "O determinante jacobiano deve ser positivo"
 
     WW = prod(W[ξ])
