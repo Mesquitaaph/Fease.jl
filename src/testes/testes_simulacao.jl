@@ -32,13 +32,8 @@ function single_run_1D(example)
 
   return C
 end
-
-# function ≈(v1, v2)
-#   return all(1e-15 .> (v1 - v2))
-# end
-
-# display(single_run_1D(1) ≈ correct_result_ex1)
-# display(single_run_1D(2) ≈ correct_result_ex2)
+display(single_run_1D(1) ≈ correct_result_ex1)
+display(single_run_1D(2) ≈ correct_result_ex2)
 
 
 function single_run_2D()
@@ -62,7 +57,13 @@ function single_run_2D()
   K = monta_K_quadrilatero(run_values, malha)
   F = monta_F_quadrilatero(run_values, malha)
   c = K \ F
-  
+
+  c_geral, EQoLG, xPTne = solveSys_geral(run_values, malha)
+  X₁, X₂ = malha.coords
+  # Calcula a solução exata nos nós internos da malha
+  c_exato = u.(X₁[2:end-1,2:end-1],X₂[2:end-1,2:end-1])
+	c_exato = c_exato[:]
+
   correct_result_ex1 = [
     0.659197679603509
     0.9322462987801567
@@ -73,6 +74,16 @@ function single_run_2D()
   ]
   
   display(c ≈ correct_result_ex1)
+  display(c_geral ≈ correct_result_ex1)
+  display(c ≈ c_geral)
+
+  # Exibe a solução aproximada (vetor c) e a solução exata (vetor c_exato)
+  # display("Solução aproximada:")
+  # # display(c)
+  # display(c_geral)
+  # display("Solução exata:")
+  # display(c_exato)
+	# display("─" ^ 40)  # Linha divisória
   
 	# Exemplo 2: Malha com ruído nos nós internos
 	display("Exemplo 2: Adiciona ruído nos nós internos")
@@ -83,6 +94,12 @@ function single_run_2D()
   K = monta_K_quadrilatero(run_values, malha)
   F = monta_F_quadrilatero(run_values, malha)
   c = K \ F
+  c_geral, EQoLG, xPTne = solveSys_geral(run_values, malha)
+
+  X₁, X₂ = malha.coords
+  # Calcula a solução exata nos nós internos da malha
+  c_exato = u.(X₁[2:end-1,2:end-1],X₂[2:end-1,2:end-1])
+	c_exato = c_exato[:]
 
   correct_result_ex2 = [
     0.7065102277637031
@@ -94,9 +111,18 @@ function single_run_2D()
   ]
     
   display(c ≈ correct_result_ex2)
-end
+  display(c_geral ≈ correct_result_ex2)
+  display(c ≈ c_geral)
 
-# single_run_2D()
+  # Exibe a solução aproximada (vetor c) e a solução exata (vetor c_exato)
+  # display("Solução aproximada:")
+  # # display(c)
+  # display(c_geral)
+  # display("Solução exata:")
+  # display(c_exato)
+	# display("─" ^ 40)  # Linha divisória
+end
+single_run_2D()
 
 function test_monta_F_1D()
   example = 1 # ou 2
@@ -115,7 +141,7 @@ function test_monta_F_1D()
   display("Caso 1D: Exemplo 1")
   display(F_1D ≈ F_geral)
 end
-test_monta_F_1D()
+# test_monta_F_1D()
 
 
 function test_monta_F_2D()
@@ -134,9 +160,10 @@ function test_monta_F_2D()
   malha = monta_malha_2D_uniforme(base, Nx1, Nx2, a ,b)
 
 	display("Exemplo 1: Malha uniforme de retângulos")
-  F = monta_F_quadrilatero(run_values, malha)
+  F_2D = monta_F_quadrilatero(run_values, malha)
+  F_geral, xPTne = montaF_geral(run_values, malha)
   
-  correct_result_2D = [
+  correct_F_2D = [
     0.9164924375447934
     1.2961160349882237
     0.9164924375447934
@@ -145,6 +172,87 @@ function test_monta_F_2D()
     0.9164924375447936
   ]
 
-  display(F ≈ correct_result_2D)
+  display(F_2D ≈ F_geral)
+
+  # Exemplo 2: Malha com ruído nos nós internos
+	display("Exemplo 2: Adiciona ruído nos nós internos")
+  Random.seed!(42)  # Define uma semente para reprodutibilidade
+  malha = malha2D_adiciona_ruido(malha)
+
+  F_2D = monta_F_quadrilatero(run_values, malha)
+  F_geral, xPTne = montaF_geral(run_values, malha)
+  
+  # correct_F_2D = [
+  #   0.9164924375447934
+  #   1.2961160349882237
+  #   0.9164924375447934
+  #   0.9164924375447936
+  #   1.296116034988224
+  #   0.9164924375447936
+  # ]
+
+  display(F_2D ≈ F_geral)
 end
 # test_monta_F_2D()
+
+function test_monta_K_1D()
+  example = 1
+  alpha, beta, gamma, a, b, u, u_x, f = examples(example); ne = 2^3
+
+  run_values = RunValues(alpha, beta, gamma, f, u)
+
+  baseType = BaseTypes.linearLagrange
+  base = monta_base(baseType, ne)
+
+  malha = monta_malha_1D_uniforme(ne, base, a, b)
+
+  K_1D = montaK(run_values, malha)
+  display(K_1D)
+  K_geral = montaK_geral(run_values, malha)
+
+  display("Caso 1D: Exemplo 1")
+  display(K_1D ≈ K_geral)
+end
+# test_monta_K_1D()
+
+
+function test_monta_K_2D()
+  # Carrega os parâmetros de entrada da EDP
+  α, β, f, u = exemplo1()
+
+  run_values = RunValues(α, β, 0.0, f, u)
+
+	# Define parâmetros da malha e monta a estrutura inicial
+  Nx1, Nx2 = 4, 3
+
+  baseType = BaseTypes.linearLagrange
+  base = monta_base(baseType, Nx1*Nx2)
+  
+  a = (0.0, 0.0); b = (1.0, 1.0)
+  malha = monta_malha_2D_uniforme(base, Nx1, Nx2, a ,b)
+
+	# display("Exemplo 1: Malha uniforme de retângulos")
+  # # display("monta_K_quadrilatero")
+  # K_2D = monta_K_quadrilatero(run_values, malha)
+  # # display(K_2D)
+  # # display("montaK_geral")
+  # K_geral = montaK_geral(run_values, malha)
+  # # display(K_geral)
+
+  # display(K_2D ≈ K_geral)
+  
+  # Exemplo 2: Malha com ruído nos nós internos
+	display("Exemplo 2: Adiciona ruído nos nós internos")
+  Random.seed!(42)  # Define uma semente para reprodutibilidade
+  malha = malha2D_adiciona_ruido(malha)
+
+  # display("monta_K_quadrilatero")
+  K_2D = monta_K_quadrilatero(run_values, malha)
+  # display(K_2D)
+  # display("montaK_geral")
+  K_geral = montaK_geral(run_values, malha)
+  # display(K_geral)
+
+  display(K_2D ≈ K_geral)
+end
+# test_monta_K_2D()
