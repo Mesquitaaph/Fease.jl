@@ -91,22 +91,31 @@ end
 
 function montaFᵉ_geral!(Fᵉ, f, Xe, P, W, ϕξ, ∇ϕξ, n_dim)
   fill!(Fᵉ, 0.0)
-  X1e = Xe[1]
 
   npg = length(P)
-  for i in 1:npg
-    vec_∂ϕ_∂ξ₁ = ∇ϕξ[i,:]
+  for ξ in 1:npg
+    vec_∂ϕ_∂ξ₁ = ∇ϕξ[1][ξ,:]
 
-    vec_ϕ = ϕξ[i,:]
+    vec_ϕ = ϕξ[1][ξ,:]
 
-    x = dot(X1e, vec_ϕ)
+    x = ()
+    for d in 1:n_dim
+      x = (x..., dot(Xe[d], vec_ϕ))
+    end
     
-    detJ = dot(X1e, vec_∂ϕ_∂ξ₁)
+    M_J = Matrix{Float64}(undef, n_dim, n_dim)
+    for i in 1:n_dim
+      for j in 1:n_dim
+        M_J[i,j] = dot(Xe[i], ∇ϕξ[j][ξ,:])
+      end
+    end
+
+    detJ = det(M_J)
     @assert detJ > 0 "O determinante jacobiano deve ser positivo"
 
-    WW = prod(W[i])
+    WW = prod(W[ξ])
     for a in 1:2^n_dim
-      @inbounds Fᵉ[a] += WW * f(x) * ϕξ[i, a] * detJ
+      @inbounds Fᵉ[a] += WW * f(x...) * vec_ϕ[a] * detJ
     end
   end
 end
@@ -118,8 +127,8 @@ function montaF_geral(run_values::RunValues, malha::Malha)
   
   npg = 5
 
-  ϕξ, P, W = avaliar_quadratura_geral(ϕ_geral, npg, 2, 1)
-  ∇ϕξ, P, W = avaliar_quadratura_geral(∇ϕ_1D, npg, 2, 1)
+  ϕξ, P, W = avaliar_quadratura_geral_ϕ(ϕ_geral, npg, 2, n_dim)
+  ∇ϕξ, P, W = avaliar_quadratura_geral(∇ϕ_geral, npg, 2, n_dim)
   
   F = zeros(neq+1)
   Fᵉ = zeros(2^n_dim)
