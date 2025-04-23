@@ -195,14 +195,13 @@ function montaF_geral(run_values::RunValues, malha::Malha)
     end
   end
   
-  xPTne = zeros(npg, ne)
-  return F[1:neq], xPTne
+  return F[1:neq]
 end
 
 function solveSys_geral(run_values::RunValues, malha::Malha)
   K = montaK_geral(run_values, malha)
 
-  F, xPTne = montaF_geral(run_values, malha)
+  F = montaF_geral(run_values, malha)
 
   C = zeros(Float64, malha.neq)
 
@@ -210,5 +209,6 @@ function solveSys_geral(run_values::RunValues, malha::Malha)
 
   F = nothing; K = nothing;
 
+  xPTne = zeros(1)
   return C, malha.EQoLG, xPTne
 end

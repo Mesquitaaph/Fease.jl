@@ -58,7 +58,7 @@ function single_run_2D()
   F = monta_F_quadrilatero(run_values, malha)
   c = K \ F
 
-  c_geral, EQoLG, xPTne = solveSys_geral(run_values, malha)
+  c_geral, EQoLG = solveSys_geral(run_values, malha)
   X₁, X₂ = malha.coords
   # Calcula a solução exata nos nós internos da malha
   c_exato = u.(X₁[2:end-1,2:end-1],X₂[2:end-1,2:end-1])
@@ -94,7 +94,7 @@ function single_run_2D()
   K = monta_K_quadrilatero(run_values, malha)
   F = monta_F_quadrilatero(run_values, malha)
   c = K \ F
-  c_geral, EQoLG, xPTne = solveSys_geral(run_values, malha)
+  c_geral, EQoLG = solveSys_geral(run_values, malha)
 
   X₁, X₂ = malha.coords
   # Calcula a solução exata nos nós internos da malha
@@ -136,7 +136,7 @@ function test_monta_F_1D()
   malha = monta_malha_1D_uniforme(ne, base, a, b)
 
   F_1D, xPTne = montaF(run_values, malha)
-  F_geral, xPTne = montaF_geral(run_values, malha)
+  F_geral = montaF_geral(run_values, malha)
 
   display("Caso 1D: Exemplo 1")
   display(F_1D ≈ F_geral)
@@ -161,7 +161,7 @@ function test_monta_F_2D()
 
 	display("Exemplo 1: Malha uniforme de retângulos")
   F_2D = monta_F_quadrilatero(run_values, malha)
-  F_geral, xPTne = montaF_geral(run_values, malha)
+  F_geral = montaF_geral(run_values, malha)
   
   correct_F_2D = [
     0.9164924375447934
@@ -180,7 +180,7 @@ function test_monta_F_2D()
   malha = malha2D_adiciona_ruido(malha)
 
   F_2D = monta_F_quadrilatero(run_values, malha)
-  F_geral, xPTne = montaF_geral(run_values, malha)
+  F_geral = montaF_geral(run_values, malha)
   
   # correct_F_2D = [
   #   0.9164924375447934
