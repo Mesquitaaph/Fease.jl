@@ -36,16 +36,12 @@ function quadratura_ϕ(base, npg, n_dim)
   P, W = quadratura_gauss(npg, n_dim)
   n_funcs = base.nB
 
-  ϕPₙ = ()
-  for d in 1:n_dim
-    ϕP = zeros(npg^n_dim, n_funcs^n_dim)
-    for ξ in 1:npg^n_dim
-      ϕP[ξ, :] .= ϕ_geral(P[ξ]...)[1]
-    end
-    ϕPₙ = (ϕPₙ..., ϕP)
+  ϕP = zeros(npg^n_dim, n_funcs^n_dim)
+  for ξ in 1:npg^n_dim
+    ϕP[ξ, :] .= ϕ_geral(P[ξ]...)[1]
   end
 
-  return ϕPₙ, P, W
+  return ϕP, P, W
 end
 
 function quadratura_∇ϕ(base, npg, n_dim)
@@ -98,7 +94,7 @@ function montaKᵉ_geral!(Kᵉ, Xe, P, W, Φξ, ∇Φξ, n_dim, dx, run_values::
 
   npg = length(P)
   for ξ in 1:npg
-    ϕᵉ = Φξ[1][ξ,:]
+    ϕᵉ = Φξ[ξ,:]
 
     M, detJ = jacobiano(n_dim, Xe, ∇Φξ, ξ)
     @assert detJ > 0 "O determinante jacobiano deve ser positivo"
@@ -161,7 +157,7 @@ function montaFᵉ_geral!(Fᵉ, f, Xe, P, W, ϕξ, ∇ϕξ, n_dim)
 
   npg = length(P)
   for ξ in 1:npg
-    ϕᵉ = ϕξ[1][ξ,:]
+    ϕᵉ = ϕξ[ξ,:]
 
     x = mudanca_variavel_xξ(Xᵉ, ϕᵉ, n_dim)
     
