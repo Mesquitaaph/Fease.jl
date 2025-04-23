@@ -64,6 +64,14 @@ function quadratura_∇ϕ(base, npg, n_dim)
   return ϕPₙ, P, W
 end
 
+function mudanca_variavel_xξ(Xᵉ, Φξ, n_dim)
+  x = ()
+  for d in 1:n_dim
+    x = (x..., dot(Xᵉ[d], Φξ))
+  end
+  return x
+end
+
 function elem_coords(malha::Malha, e::Int64)
   (; LG, EQ, n_dim, coords) = malha
   idx = LG[:,e]
@@ -155,10 +163,7 @@ function montaFᵉ_geral!(Fᵉ, f, Xe, P, W, ϕξ, ∇ϕξ, n_dim)
   for ξ in 1:npg
     ϕᵉ = ϕξ[1][ξ,:]
 
-    x = ()
-    for d in 1:n_dim
-      x = (x..., dot(Xe[d], ϕᵉ))
-    end
+    x = mudanca_variavel_xξ(Xᵉ, ϕᵉ, n_dim)
     
     M, detJ = jacobiano(n_dim, Xe, ∇ϕξ, ξ)
     @assert detJ > 0 "O determinante jacobiano deve ser positivo"
