@@ -64,6 +64,21 @@ function quadratura_∇ϕ(base, npg, n_dim)
   return ϕPₙ, P, W
 end
 
+function elem_coords(malha::Malha, e::Int64)
+  (; LG, EQ, n_dim, coords) = malha
+  idx = LG[:,e]
+    
+  # Coordenadas dos vértices do elemento finito Ωᵉ
+  Xe = ()
+  for d in 1:n_dim
+    Xe = (Xe..., coords[d][idx])
+  end
+  
+  idx = EQ[idx]
+
+  return idx, Xe
+end
+
 function montaKᵉ_geral!(Kᵉ, Xe, P, W, Φξ, ∇Φξ, n_dim, dx, run_values::RunValues)
   fill!(Kᵉ, 0.0)
 
@@ -103,28 +118,19 @@ function montaKᵉ_geral!(Kᵉ, Xe, P, W, Φξ, ∇Φξ, n_dim, dx, run_values::
 end
 
 function montaK_geral(run_values::RunValues, malha::Malha)
-  (; ne, neq, dx, EQ, LG, n_dim, coords, Nx, base) = malha
-  X = coords
+  (; ne, neq, dx, n_dim, Nx, base) = malha
 
   npg = 2
   
   ϕξ, P, W = quadratura_ϕ(base, npg, n_dim)
   ∇ϕξ, P, W = quadratura_∇ϕ(base, npg, n_dim)
   
-  Kᵉ = zeros(Float64, 2^n_dim, 2^n_dim)
   band = Nx[1]
   K = BandedMatrix(Zeros(neq, neq), (band, band))
+  Kᵉ = zeros(Float64, 2^n_dim, 2^n_dim)
   
   for e in 1:ne
-    idx = LG[:,e]
-    
-    # Coordenadas dos vértices do elemento finito Ωᵉ
-    Xe = ()
-    for d in 1:n_dim
-      Xe = (Xe..., X[d][idx])
-    end
-    
-    idx = EQ[idx]
+    idx, Xe = elem_coords(malha::Malha, e::Int64)
 
     montaKᵉ_geral!(Kᵉ, Xe, P, W, ϕξ, ∇ϕξ, n_dim, dx, run_values)
 
@@ -165,9 +171,8 @@ function montaFᵉ_geral!(Fᵉ, f, Xe, P, W, ϕξ, ∇ϕξ, n_dim)
 end
 
 function montaF_geral(run_values::RunValues, malha::Malha)
-  (;f) = run_values
-  (; ne, neq, coords, LG, EQ, n_dim, base) = malha
-  X = coords
+  (; f) = run_values
+  (; ne, neq, n_dim, base) = malha
   
   npg = 5
 
@@ -178,15 +183,7 @@ function montaF_geral(run_values::RunValues, malha::Malha)
   Fᵉ = zeros(2^n_dim)
 
   for e in 1:ne
-    idx = LG[:,e]
-    
-    # Coordenadas dos vértices do elemento finito Ωᵉ
-    Xe = ()
-    for d in 1:n_dim
-      Xe = (Xe..., X[d][idx])
-    end
-    
-    idx = EQ[idx]
+    idx, Xe = elem_coords(malha::Malha, e::Int64)
     
     montaFᵉ_geral!(Fᵉ, f, Xe, P, W, ϕξ, ∇ϕξ, n_dim)
     
