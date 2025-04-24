@@ -1,16 +1,16 @@
 struct Malha
-  base
-  ne::Int64
-  neq::Int64
-  coords# ([], [], [])
-  dx#()
-  EQ
-  LG
-  EQoLG::Matrix{Int64}
-  a
-  b
-  n_dim
-  Nx
+  base # Informações sobre o tipo da base de funções interpoladoras
+  ne::Int64 # Número de elementos totais
+  neq::Int64 # Número de equações
+  coords::Tuple # Tupla com as coordenadas (X₁, X₂, Xᵢ...) dos nós da malha
+  dx # n-upla contendo o intervalo entre os nós, para cada eixo (se uniforme)
+  EQ # Vetor com as reenumerações das funções globais ϕ
+  LG # Matriz de conectividade local/global (LG). Relaciona a numeração local e global das funções ϕ
+  EQoLG::Matrix{Int64} # Matriz composta entre a EQ e a LG
+  a # Coordenada do início do intervalo uniforme
+  b # Coordenada do final do intervalo uniforme
+  n_dim # Número de dimensões da malha
+  Nx # Número de subdivisões da malha para cada eixo
 end
 
 function montaLG_geral(Nx1::Int64, Nx2::Int64 = 0)
@@ -127,7 +127,8 @@ function monta_malha_1D_uniforme(ne, base, a, b)
   neq, EQ = montaEQ_geral(ne); LG = montaLG_geral(ne)
   EQoLG = EQ[LG]
 
-  coords = (;X)
+  coords = Tuple([X])
+
   n_dim = 1
   Nx = (;ne)
   return Malha(base, ne, neq, coords, dx, EQ, LG, EQoLG, a, b, n_dim, Nx)
@@ -151,14 +152,14 @@ function monta_malha_2D_uniforme(base, Nx1, Nx2, a::Tuple, b::Tuple)::Malha
   neq, EQ = montaEQ_geral(Nx1, Nx2); LG = montaLG_geral(Nx1, Nx2)
   EQoLG = EQ[LG]
 
-  coords = (;X₁, X₂)
+  coords = (X₁, X₂)
   n_dim = 2
   Nx = (;Nx1, Nx2)
   return Malha(base, ne, neq, coords, h, EQ, LG, EQoLG, a, b, n_dim, Nx)
 end
 
 function malha2D_adiciona_ruido(malha::Malha)::Malha
-  (;X₁, X₂) = malha.coords
+  (X₁, X₂) = malha.coords
   (;h₁, h₂) = malha.dx
   # Verifica se as matrizes têm a mesma dimensão
   @assert size(X₁) == size(X₂) "X₁ e X₂ devem ter as mesmas dimensões"
