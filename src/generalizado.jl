@@ -70,20 +70,20 @@ end
 
 function elem_coords(malha::Malha, e::Int64)
   (; LG, EQ, n_dim, coords) = malha
-  idx = LG[:,e]
+  nosᵉ_idx = LG[:,e]
     
   # Coordenadas dos vértices do elemento finito Ωᵉ
-  Xe = ()
+  Xᵉ = ()
   for d in 1:n_dim
-    Xe = (Xe..., coords[d][idx])
+    Xᵉ = (Xᵉ..., coords[d][nosᵉ_idx])
   end
   
-  idx = EQ[idx]
+  eqs_idx = EQ[nosᵉ_idx]
 
-  return idx, Xe
+  return eqs_idx, Xᵉ
 end
 
-function montaKᵉ_geral!(Kᵉ, Xe, P, W, Φξ, ∇Φξ, n_dim, dx, run_values::RunValues)
+function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, dx, run_values::RunValues)
   fill!(Kᵉ, 0.0)
 
   function ∇Φ(ξ, a)
@@ -96,7 +96,7 @@ function montaKᵉ_geral!(Kᵉ, Xe, P, W, Φξ, ∇Φξ, n_dim, dx, run_values::
   for ξ in 1:npg
     ϕᵉ = Φξ[ξ,:]
 
-    M, detJ = jacobiano(n_dim, Xe, ∇Φξ, ξ)
+    M, detJ = jacobiano(n_dim, Xᵉ, ∇Φξ, ξ)
     @assert detJ > 0 "O determinante jacobiano deve ser positivo"
     
     M⁻¹ = inv(M)
@@ -134,14 +134,14 @@ function montaK_geral(run_values::RunValues, malha::Malha)
   Kᵉ = zeros(Float64, 2^n_dim, 2^n_dim)
   
   for e in 1:ne
-    idx, Xe = elem_coords(malha::Malha, e::Int64)
+    eqs_idx, Xᵉ = elem_coords(malha::Malha, e::Int64)
 
-    montaKᵉ_geral!(Kᵉ, Xe, P, W, ϕξ, ∇ϕξ, n_dim, dx, run_values)
+    montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, ϕξ, ∇ϕξ, n_dim, dx, run_values)
 
     for b in 1:2^n_dim
-      @inbounds j = idx[b]
+      @inbounds j = eqs_idx[b]
       for a in 1:2^n_dim
-        @inbounds i = idx[a]
+        @inbounds i = eqs_idx[a]
         if i <= neq && j <= neq
           @inbounds K[i,j] += Kᵉ[a,b]
         end
@@ -152,7 +152,7 @@ function montaK_geral(run_values::RunValues, malha::Malha)
   return sparse(K)
 end
 
-function montaFᵉ_geral!(Fᵉ, f, Xe, P, W, ϕξ, ∇ϕξ, n_dim)
+function montaFᵉ_geral!(Fᵉ, f, Xᵉ, P, W, ϕξ, ∇ϕξ, n_dim)
   fill!(Fᵉ, 0.0)
 
   npg = length(P)
@@ -161,7 +161,7 @@ function montaFᵉ_geral!(Fᵉ, f, Xe, P, W, ϕξ, ∇ϕξ, n_dim)
 
     x = mudanca_variavel_xξ(Xᵉ, ϕᵉ, n_dim)
     
-    M, detJ = jacobiano(n_dim, Xe, ∇ϕξ, ξ)
+    M, detJ = jacobiano(n_dim, Xᵉ, ∇ϕξ, ξ)
     @assert detJ > 0 "O determinante jacobiano deve ser positivo"
 
     WW = prod(W[ξ])
@@ -184,12 +184,13 @@ function montaF_geral(run_values::RunValues, malha::Malha)
   Fᵉ = zeros(2^n_dim)
 
   for e in 1:ne
-    idx, Xe = elem_coords(malha::Malha, e::Int64)
+    eqs_idx, Xᵉ = elem_coords(malha::Malha, e::Int64)
     
-    montaFᵉ_geral!(Fᵉ, f, Xe, P, W, ϕξ, ∇ϕξ, n_dim)
+    montaFᵉ_geral!(Fᵉ, f, Xᵉ, P, W, ϕξ, ∇ϕξ, n_dim)
     
     for a in 1:2^n_dim
-      F[idx[a]] += Fᵉ[a]
+      i = eqs_idx[a]
+      F[i] += Fᵉ[a]
     end
   end
   
