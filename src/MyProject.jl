@@ -2,7 +2,7 @@ module MyProject
 
 export format_num, measure_func
 
-export Malha, monta_malha
+export Malha, monta_malha_1D_uniforme, monta_malha_2D_uniforme, malha2D_adiciona_ruido
 
 export examples, RunValues
 
@@ -10,9 +10,11 @@ export BaseTypes, LocalBases, monta_base
 
 export solveSys, PHI, PHI_original
 
+export exemplo1
+
 export convergence_test!
 
-export single_run_1D
+export solveSys_geral, montaK_geral, montaF_geral
 
 
 # Dependencias do modulo
