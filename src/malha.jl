@@ -121,7 +121,7 @@ function monta_EQ_2D(Nx1::Int64, Nx2::Int64)
 end
 
 function monta_malha_1D_uniforme(ne, base, a, b)
-  dx = 1/ne;
+  dx = (b[1]-a[1]) / ne;
   X = collect(a:dx:b)
 
   neq, EQ = montaEQ_geral(ne); LG = montaLG_geral(ne)
@@ -136,7 +136,7 @@ end
 
 function monta_malha_2D_uniforme(base, Nx1, Nx2, a::Tuple, b::Tuple)::Malha
   # Define o comprimento da base (h₁) e altura (h₂) de cada elemento retangular Ωᵉ
-  h₁, h₂ = 1 / Nx1, 1 / Nx2
+  h₁, h₂ = (b[1]-a[1]) / Nx1, (b[2]-a[2]) / Nx2
   h = (;h₁, h₂)
 
   ne = Nx1 * Nx2
