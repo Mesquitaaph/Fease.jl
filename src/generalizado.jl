@@ -126,24 +126,28 @@ function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, dx, run_values
 
     # Calcula o peso total do ponto de Gauss ξ = (ξ₁, ξ₂, ξᵢ...)
     WW = prod(W[ξ])
+
+    detJ⁻¹H = 1/detJ * H
     
     # Calcula a contribuição de quadratura e acumula o valor na matriz Kᵉ
-    for a in 1:2^n_dim
-      @inbounds for b in 1:2^n_dim
+    @inbounds for a in 1:2^n_dim
         # Aplica a mudança de variável de ∇ϕᵉ_a para ∇Φ_a
-        ∇ϕᵉ_a = 1/detJ * H * ∇Φ(ξ, a)
-        ∇ϕᵉ_b = 1/detJ * H * ∇Φ(ξ, b)
+      ∇ϕᵉ_a = detJ⁻¹H * ∇Φ(ξ, a)
+      ϕᵉ_a = ϕᵉ[a]
+      for b in 1:2^n_dim
+        # Aplica a mudança de variável de ∇ϕᵉ_b para ∇Φ_b
+        ∇ϕᵉ_b = detJ⁻¹H * ∇Φ(ξ, b)
 
         # Calcula a contribuição da parcela com α 
-        parcelaDerivada2 = α * dot(∇ϕᵉ_b, ∇ϕᵉ_a) * detJ
+        parcelaDerivada2 = α * dot(∇ϕᵉ_b, ∇ϕᵉ_a)
 
         # Calcula a contribuição da parcela com β
-        parcelaNormal = β * ϕᵉ[a] * ϕᵉ[b] * detJ
+        parcelaNormal = β * ϕᵉ_a * ϕᵉ[b]
 
         # Calcula a contribuição da parcela com γ (funcionava em 1D)
         parcelaDerivada1 = 0 #γ * vec_Φ[a] * ∇ϕᵉ_b
 
-        Kᵉ[a,b] += WW * (parcelaDerivada2 + parcelaNormal + parcelaDerivada1)
+        Kᵉ[a,b] += WW * (parcelaDerivada2 + parcelaNormal + parcelaDerivada1) * detJ
       end
     end
   end
