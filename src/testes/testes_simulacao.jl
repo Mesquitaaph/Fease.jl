@@ -28,7 +28,7 @@ function single_run_1D(example)
 
   malha = monta_malha_1D_uniforme(ne, base, a, b)
 
-  C, EQoLG, xPTne = solveSys_geral(run_values, malha)
+  C = solveSys_geral(run_values, malha)
 
   return C
 end
@@ -58,7 +58,7 @@ function single_run_2D()
   F = monta_F_quadrilatero(run_values, malha)
   c = K \ F
 
-  c_geral, EQoLG = solveSys_geral(run_values, malha)
+  c_geral = solveSys_geral(run_values, malha)
   X₁, X₂ = malha.coords
   # Calcula a solução exata nos nós internos da malha
   c_exato = u.(X₁[2:end-1,2:end-1],X₂[2:end-1,2:end-1])
@@ -94,7 +94,7 @@ function single_run_2D()
   K = monta_K_quadrilatero(run_values, malha)
   F = monta_F_quadrilatero(run_values, malha)
   c = K \ F
-  c_geral, EQoLG = solveSys_geral(run_values, malha)
+  c_geral = solveSys_geral(run_values, malha)
 
   X₁, X₂ = malha.coords
   # Calcula a solução exata nos nós internos da malha

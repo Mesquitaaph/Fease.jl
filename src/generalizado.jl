@@ -258,6 +258,5 @@ function solveSys_geral(run_values::RunValues, malha::Malha)
 
   C .= K\F
 
-  xPTne = zeros(1) # resquicio / lixo
-  return C, malha.EQoLG, xPTne
+  return C
 end
