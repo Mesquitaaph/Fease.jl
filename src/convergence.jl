@@ -29,7 +29,7 @@ function convergence_test!(NE, E, dE, example)
 
   for i = 1:lastindex(NE)
       base = LocalBases[Symbol(baseType)](NE[i])
-      Ci, EQoLGi, xPTnei = solveSys(base, alpha, beta, gamma, sigma, NE[i], a, b, f, u)
+      Ci, EQoLGi, xPTnei = solveSys_1D(base, alpha, beta, gamma, sigma, NE[i], a, b, f, u)
       E[i], dE[i] = erro_L2(base, NE[i], EQoLGi, Ci, u, u_x, xPTnei)
   end
 end

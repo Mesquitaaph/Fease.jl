@@ -135,7 +135,7 @@ function test_monta_F_1D()
 
   malha = monta_malha_1D_uniforme(ne, base, a, b)
 
-  F_1D, xPTne = montaF(run_values, malha)
+  F_1D, xPTne = montaF_1D(run_values, malha)
   F_geral = montaF_geral(run_values, malha)
 
   display("Caso 1D: Exemplo 1")
@@ -206,7 +206,7 @@ function test_monta_K_1D()
 
   malha = monta_malha_1D_uniforme(ne, base, a, b)
 
-  K_1D = montaK(run_values, malha)
+  K_1D = montaK_1D(run_values, malha)
   display(K_1D)
   K_geral = montaK_geral(run_values, malha)
 

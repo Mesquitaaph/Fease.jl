@@ -15,7 +15,7 @@ function xksi(ksi, e, X)
   return h/2*(ksi+1) + X[e]
 end
 
-function montaK(run_values::RunValues, malha)
+function montaK_1D(run_values::RunValues, malha)
   (; α, β, γ) = run_values
   (; ne, neq, dx, EQoLG) = malha
 
@@ -25,35 +25,35 @@ function montaK(run_values::RunValues, malha)
   dphiP, P, W = avaliar_quadratura(∇ϕ_1D, npg, 2, 1)
 
   Ke = zeros(Float64, 2, 2)
-  for a in 1:2
-      for b in 1:2
-          for ksi in 1:npg
-              @inbounds parcelaNormal = β*dx/2 * W[ksi] * phiP[ksi, a] * phiP[ksi, b];
-              @inbounds parcelaDerivada1 = γ * W[ksi] * phiP[ksi, a] * dphiP[ksi, b];
-              @inbounds parcelaDerivada2 = 2*α/dx * W[ksi] * dphiP[ksi, a] * dphiP[ksi, b];
+  @inbounds for a in 1:2
+    for b in 1:2
+      for ksi in 1:npg
+        parcelaNormal = β*dx/2 * W[ksi] * phiP[ksi, a] * phiP[ksi, b];
+        parcelaDerivada1 = γ * W[ksi] * phiP[ksi, a] * dphiP[ksi, b];
+        parcelaDerivada2 = 2*α/dx * W[ksi] * dphiP[ksi, a] * dphiP[ksi, b];
 
-              @inbounds Ke[a,b] += parcelaDerivada2 + parcelaNormal + parcelaDerivada1
-          end
+        Ke[a,b] += parcelaDerivada2 + parcelaNormal + parcelaDerivada1
       end
+    end
   end
 
   K = BandedMatrix(Zeros(neq, neq), (1, 1))
-  for e in 1:ne
-      for b in 1:2
-          @inbounds j = EQoLG[b, e]
-          for a in 1:2
-              @inbounds i = EQoLG[a, e]
-              if i <= neq && j <= neq
-                  @inbounds K[i,j] += Ke[a,b]
-              end
-          end
+  @inbounds for e in 1:ne
+    for b in 1:2
+      j = EQoLG[b, e]
+      for a in 1:2
+        i = EQoLG[a, e]
+        if i <= neq && j <= neq
+          K[i,j] += Ke[a,b]
+        end
       end
+    end
   end
 
   return sparse(K)
 end
 
-function montaF(run_values::RunValues, malha::Malha)
+function montaF_1D(run_values::RunValues, malha::Malha)
   (; dx, ne, neq, coords, EQoLG) = malha
   (; f) = run_values
   
@@ -64,14 +64,14 @@ function montaF(run_values::RunValues, malha::Malha)
   
   F = zeros(neq+1)
   xPTne = zeros(npg, ne)
-  for e in 1:ne
+  @inbounds for e in 1:ne
     for ksi in 1:npg
-      @inbounds fxptne = f(xksi(P[ksi], e, X))
-      @inbounds xPTne[ksi, e] = fxptne
+      fxptne = f(xksi(P[ksi], e, X))
+      xPTne[ksi, e] = fxptne
       for a in 1:2
-        @inbounds i = EQoLG[a, e]
+        i = EQoLG[a, e]
 
-        @inbounds F[i] += W[ksi] * fxptne * phiP[ksi, a] * dx/2
+        F[i] += W[ksi] * fxptne * phiP[ksi, a] * dx/2
       end
     end
   end
@@ -79,21 +79,14 @@ function montaF(run_values::RunValues, malha::Malha)
   return F[1:neq], xPTne
 end
 
-function solveSys(run_values::RunValues, malha::Malha)
-  K = montaK(run_values, malha)
+function solveSys_1D(run_values::RunValues, malha::Malha)
+  K = montaK_1D(run_values, malha)
 
-  F, xPTne = montaF(run_values, malha)
-
-  # display("Matriz K RAPHAEL:")
-  # display(K)
-  # display("Vetor F RAPHAEL:")
-  # display(F)
+  F, xPTne = montaF_1D(run_values, malha)
 
   C = zeros(Float64, malha.neq)
 
   C .= K\F
-  # display("Solução aproximada U RAPHAEL:")
-  # display(C)
 
   F = nothing; K = nothing;
 
