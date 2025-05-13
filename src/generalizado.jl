@@ -13,7 +13,26 @@ function jacobiano(n_dim, Xᵉ, ∇Φξ, ξ)
   return M, detJ
 end
 
-function quadratura_gauss(npg::Int64, n_dim::Int64)
+"""
+    quadratura_gauss(npg::Int, n_dim::Int)
+
+Define os `npg` pontos de Gauss-Legendre `P` e os pesos associados `W`. 
+Cada um dos pontos em `P` são n-uplas dimensionadas por `n_dim`. Os pesos associados `W` funcionam analogamente.
+
+# Parâmetros
+- `npg::Int`: Número de pontos de integração de Gauss-Legendre.
+- `n_dim::Int`: Número de dimensões do espaço. Tamanho dos pontos de Gauss-Legendre.
+
+# Retorno
+- `P::Vector{Tuple}`: Vetor de n-uplas, onde cada n-upla é um ponto de Gauss-Legendre dimensionado por `n_dim`.
+- `W::Vector{Tuple}`: Vetor de n-uplas, onde cada n-upla é um conjunto ordenado de pesos de Gauss-Legendre associados a cada um dos pontos em `P`.
+
+# Exemplo
+```@example
+
+```
+"""
+function quadratura_gauss(npg::Int, n_dim::Int)
   p, w = legendre(npg)
 
   # Declara as listas de pontos de Gauss e seus respectivos pesos
@@ -39,11 +58,31 @@ function quadratura_gauss(npg::Int64, n_dim::Int64)
   return P, W
 end
 
-function quadratura_ϕ(base, npg, n_dim)
+"""
+    quadratura_ϕ(base, npg::Int, n_dim::Int)
+
+Avalia cada uma das funções `ϕ` em cada um dos `npg` pontos de Gauss-Legendre e armazena o resultado em uma matriz `ϕP: npg x n_funcs`.
+
+# Parâmetros
+- `n_funcs::Int`: Número de funções base.
+- `npg::Int`: Número de pontos de integração de Gauss-Legendre.
+- `n_dim::Int`: Número de dimensões do espaço. Tamanho dos pontos de Gauss-Legendre.
+
+# Retorno
+- `ϕP::Matrix{Float64}`: Matriz `npg x n_funcs` com a avaliaçao das `ϕ` nos pontos de Gauss-Legendre.
+- `P::Vector{Tuple}`: Vetor de n-uplas, onde cada n-upla é um ponto de Gauss-Legendre dimensionado por `n_dim`.
+- `W::Vector{Tuple}`: Vetor de n-uplas, onde cada n-upla é um conjunto ordenado de pesos de Gauss-Legendre associados a cada um dos pontos em `P`.
+
+# Exemplo
+```@example
+
+```
+"""
+function quadratura_ϕ(base, npg::Int, n_dim::Int) # Acho que esse base posso mudar para n_funcs
   P, W = quadratura_gauss(npg, n_dim)
   n_funcs = base.nB
 
-  ϕP = zeros(npg^n_dim, n_funcs^n_dim)
+  ϕP = zeros(Float64, npg^n_dim, n_funcs^n_dim)
   # Para todos os pontos de Gauss, avalia as ϕ locais
   for ξ in 1:npg^n_dim
     ϕP[ξ, :] .= ϕ_geral(P[ξ]...)[1]
@@ -52,7 +91,28 @@ function quadratura_ϕ(base, npg, n_dim)
   return ϕP, P, W
 end
 
-function quadratura_∇ϕ(base, npg, n_dim)
+"""
+    quadratura_∇ϕ(base, npg::Int, n_dim::Int)
+
+Avalia cada uma das funções `∂ϕ`, para cada uma das `n_dim` dimensões, em cada um dos `npg` pontos de Gauss-Legendre e 
+armazena o resultado em uma n-upla `∇ϕP` de matrizes `∂ϕP: npg x n_funcs`.
+
+# Parâmetros
+- `n_funcs::Int`: Número de funções base.
+- `npg::Int`: Número de pontos de integração de Gauss-Legendre.
+- `n_dim::Int`: Número de dimensões do espaço. Tamanho dos pontos de Gauss-Legendre.
+
+# Retorno
+- `∇ϕP::Tuple{Matrix{Float64}}`: N-upla de matrizes `npg x n_funcs` com a avaliaçao das `∂ϕ` nos pontos de Gauss-Legendre.
+- `P::Vector{Tuple}`: Vetor de n-uplas, onde cada n-upla é um ponto de Gauss-Legendre dimensionado por `n_dim`.
+- `W::Vector{Tuple}`: Vetor de n-uplas, onde cada n-upla é um conjunto ordenado de pesos de Gauss-Legendre associados a cada um dos pontos em `P`.
+
+# Exemplo
+```@example
+
+```
+"""
+function quadratura_∇ϕ(base, npg::Int, n_dim::Int) # Acho que esse base posso mudar para n_funcs
   P, W = quadratura_gauss(npg, n_dim)
   n_funcs = base.nB
 
@@ -70,6 +130,24 @@ function quadratura_∇ϕ(base, npg, n_dim)
   return ∇ϕP, P, W
 end
 
+"""
+    mudanca_variavel_xξ(Xᵉ, Φξ, n_dim)
+
+Descrição.
+
+# Parâmetros
+- `Xᵉ::`: 
+- `Φξ::`: 
+- `n_dim::Int`: Número de dimensões do espaço.
+
+# Retorno
+- `x::`: 
+
+# Exemplo
+```@example
+
+```
+"""
 function mudanca_variavel_xξ(Xᵉ, Φξ, n_dim)
   x = ()
 
@@ -80,7 +158,25 @@ function mudanca_variavel_xξ(Xᵉ, Φξ, n_dim)
   return x
 end
 
-function elem_coords(malha::Malha, e::Int64)
+"""
+    elem_coords(malha::Malha, e::Int)
+
+Descrição.
+
+# Parâmetros
+- `malha::Malha`: 
+- `e::Int`: 
+
+# Retorno
+- `eqs_idx::`: 
+- `Xᵉ::`: 
+
+# Exemplo
+```@example
+
+```
+"""
+function elem_coords(malha::Malha, e::Int)
   (; LG, EQ, n_dim, coords) = malha
 
   # Índices dos vértices/funções globais do elemento finito Ωᵉ
@@ -98,7 +194,30 @@ function elem_coords(malha::Malha, e::Int64)
   return eqs_idx, Xᵉ
 end
 
-function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, dx, run_values::RunValues)
+"""
+    montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, dx, run_values::RunValues)
+
+Descrição.
+
+# Parâmetros
+- `Kᵉ::`: 
+- `Xᵉ::`: 
+- `P::`: 
+- `W::`: 
+- `Φξ::`: 
+- `∇Φξ::`: 
+- `n_dim::`: 
+- `run_values::RunValues`: 
+
+# Retorno
+Altera `Kᵉ`.
+
+# Exemplo
+```@example
+
+```
+"""
+function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, run_values::RunValues)
   # Zera as entradas da matriz local Kᵉ
   fill!(Kᵉ, 0.0)
 
@@ -131,7 +250,7 @@ function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, dx, run_values
     
     # Calcula a contribuição de quadratura e acumula o valor na matriz Kᵉ
     @inbounds for a in 1:2^n_dim
-        # Aplica a mudança de variável de ∇ϕᵉ_a para ∇Φ_a
+      # Aplica a mudança de variável de ∇ϕᵉ_a para ∇Φ_a
       ∇ϕᵉ_a = detJ⁻¹H * ∇Φ(ξ, a)
       ϕᵉ_a = ϕᵉ[a]
       for b in 1:2^n_dim
@@ -153,6 +272,23 @@ function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, dx, run_values
   end
 end
 
+"""
+    montaK_geral(run_values::RunValues, malha::Malha)
+
+Descrição.
+
+# Parâmetros
+- `run_values::RunValues`:
+- `malha::Malha`:
+
+# Retorno
+- `K::Matrix{Float64}`:
+
+# Exemplo
+```@example
+
+```
+"""
 function montaK_geral(run_values::RunValues, malha::Malha)
   (; ne, neq, dx, n_dim, Nx, base) = malha
 
@@ -171,10 +307,10 @@ function montaK_geral(run_values::RunValues, malha::Malha)
   
   # Itera sobre os elementos Ωᵉ
   for e in 1:ne
-    eqs_idx, Xᵉ = elem_coords(malha::Malha, e::Int64)
+    eqs_idx, Xᵉ = elem_coords(malha::Malha, e::Int)
 
     # Calcula a matriz local Kᵉ
-    montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, ϕξ, ∇ϕξ, n_dim, dx, run_values)
+    montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, ϕξ, ∇ϕξ, n_dim, run_values)
 
     # Itera sobre as colunas (b) e linhas (a) da matriz local Kᵉ
     @inbounds for b in 1:2^n_dim
@@ -191,6 +327,29 @@ function montaK_geral(run_values::RunValues, malha::Malha)
   return sparse(K)
 end
 
+"""
+    montaFᵉ_geral!(Fᵉ, f, Xᵉ, P, W, ϕξ, ∇ϕξ, n_dim)
+
+Descrição.
+
+# Parâmetros
+- `Fᵉ::`: 
+- `f::`: 
+- `Xᵉ::`: 
+- `P::`: 
+- `W::`: 
+- `ϕξ::`: 
+- `∇ϕξ::`: 
+- `n_dim::`: 
+
+# Retorno
+Altera `Fᵉ`.
+
+# Exemplo
+```@example
+
+```
+"""
 function montaFᵉ_geral!(Fᵉ, f, Xᵉ, P, W, ϕξ, ∇ϕξ, n_dim)
   # Zera as entradas do vetor local Fᵉ
   fill!(Fᵉ, 0.0)
@@ -218,6 +377,23 @@ function montaFᵉ_geral!(Fᵉ, f, Xᵉ, P, W, ϕξ, ∇ϕξ, n_dim)
   end
 end
 
+"""
+    montaF_geral(run_values::RunValues, malha::Malha)
+
+Descrição.
+
+# Parâmetros
+- `run_values::RunValues`:
+- `malha::Malha`:
+
+# Retorno
+- `F::Vector{Float64}`:
+
+# Exemplo
+```@example
+
+```
+"""
 function montaF_geral(run_values::RunValues, malha::Malha)
   (; f) = run_values
   (; ne, neq, n_dim, base) = malha
@@ -234,7 +410,7 @@ function montaF_geral(run_values::RunValues, malha::Malha)
 
   # Itera sobre os elementos Ωᵉ
   for e in 1:ne
-    eqs_idx, Xᵉ = elem_coords(malha::Malha, e::Int64)
+    eqs_idx, Xᵉ = elem_coords(malha::Malha, e::Int)
     
     # Calcula o vetor local Fᵉ
     montaFᵉ_geral!(Fᵉ, f, Xᵉ, P, W, ϕξ, ∇ϕξ, n_dim)
@@ -249,6 +425,23 @@ function montaF_geral(run_values::RunValues, malha::Malha)
   return F[1:neq]
 end
 
+"""
+    solveSys_geral(run_values::RunValues, malha::Malha)
+
+Monta e soluciona o sistema linear KC = F.
+
+# Parâmetros
+- `run_values::RunValues`:
+- `malha::Malha`:
+
+# Retorno
+- `C::Vector{Float64}`:
+
+# Exemplo
+```@example
+
+```
+"""
 function solveSys_geral(run_values::RunValues, malha::Malha)
   K = montaK_geral(run_values, malha)
 
