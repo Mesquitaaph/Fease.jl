@@ -12,6 +12,17 @@ function nice_name(file)
   return splitext(file)[1] |> x -> replace(x, "-" => " ") |> titlecase
 end
 
+Para_Comecar = "Para Começar" => [
+  "A Utilizar" => "para-comecar/para-começar-a-utilizar.md",
+  "A Desenvolver" => "para-comecar/para-começar-a-desenvolver.md",
+]
+
+Dev_Colab = "Desenvolvimento Colaborativo" => [
+  "Diretrizes de Desenvolvimento" => "desenvolvimento-colaborativo/diretrizes-desenvolvimento.md",
+  "Implementação Base" => "desenvolvimento-colaborativo/implementacao-base.md",
+  "Ferramentas" => "desenvolvimento-colaborativo/ferramentas.md",
+]
+
 makedocs(;
   modules = [MyProject],
   doctest = true,
@@ -26,11 +37,16 @@ makedocs(;
   ),
   pages = [
     "Início" => "index.md",
-    # "Reference" => "reference.md",
-    [
-      nice_name(file) => file for
-      file in readdir(joinpath(@__DIR__, "src")) if file != "index.md" && splitext(file)[2] == ".md"
-    ]...
+    Para_Comecar,
+    "Método de Elementos Finitos" => "metodo-elementos-finitos.md",
+    "Tutoriais" => "tutoriais.md",
+    Dev_Colab,
+    "Referencias" => "reference.md",
+    "Contatos" => "contatos.md",
+    # [
+    #   nice_name(file) => file for
+    #   file in readdir(joinpath(@__DIR__, "src")) if file != "index.md" && contains(file, ".md") && splitext(file)[2] == ".md"
+    # ]...
   ],
 )
 

@@ -1,12 +1,12 @@
-# Reference
+# Referências
 
-## Contents
+## Conteúdo
 
 ```@contents
 Pages = ["reference.md"]
 ```
 
-## Index
+## Índice
 
 ```@index
 Pages = ["reference.md"]

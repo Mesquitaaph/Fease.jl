@@ -1,0 +1,2 @@
+# Diretrizes para o Desenvolvimento Colaborativo
+Aqui apresentaremos o que deve ser seguido durante a implementação de novas funcionalidades, melhorias ou correções com o objetivo de manter o projeto sustentável e escalável, englobando desenvolvedores com experiências de programação em diferentes níveis.
