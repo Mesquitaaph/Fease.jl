@@ -453,10 +453,12 @@ Monta e soluciona o sistema linear KC = F.
 function solveSys_geral(run_values::RunValues, malha::Malha)
   (; α, β) = run_values
 
+  _a = [1, 2]
+
   function pseudo_a(termos_equacao::TermosEquacao)
     (; ∇u, ∇v, u, v) = termos_equacao
-
-    return α*dot(∇u, ∇v) + β*dot(u, v)
+    # α(x)
+    return β*dot(u, v) + dot(dot(_a,∇u), v)
   end
   
   K = montaK_geral(run_values, malha, pseudo_a)

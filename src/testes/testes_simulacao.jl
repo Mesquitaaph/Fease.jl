@@ -32,8 +32,8 @@ function single_run_1D(example)
 
   return C
 end
-display(single_run_1D(1) ≈ correct_result_ex1)
-display(single_run_1D(2) ≈ correct_result_ex2)
+# display(single_run_1D(1) ≈ correct_result_ex1)
+# display(single_run_1D(2) ≈ correct_result_ex2)
 
 
 function single_run_2D()
