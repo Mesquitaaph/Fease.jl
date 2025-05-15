@@ -217,7 +217,7 @@ Altera `Kᵉ`.
 
 ```
 """
-function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, run_values::RunValues)
+function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, run_values::RunValues, pseudo_a)
   # Zera as entradas da matriz local Kᵉ
   fill!(Kᵉ, 0.0)
 
@@ -256,17 +256,26 @@ function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, run_values::Ru
       for b in 1:2^n_dim
         # Aplica a mudança de variável de ∇ϕᵉ_b para ∇Φ_b
         ∇ϕᵉ_b = detJ⁻¹H * ∇Φ(ξ, b)
+        
+        # soma = 0
+        # parcelas = pseudo_a(ϕᵉ[b], ϕᵉ[a], ∇ϕᵉ_b, ∇ϕᵉ_a)
+        # for prod in parcelas
+        #   soma += dot(prod[1], prod[2])
+        # end
+        
+        soma = pseudo_a(ϕᵉ[b], ϕᵉ[a], ∇ϕᵉ_b, ∇ϕᵉ_a)
 
         # Calcula a contribuição da parcela com α 
-        parcelaDerivada2 = α * dot(∇ϕᵉ_b, ∇ϕᵉ_a)
+        parcelaDerivada2 = α * dot(∇ϕᵉ_b, ∇ϕᵉ_a) # Parcela referente ao termo laplaciano: -α⋅Δu(x)
 
         # Calcula a contribuição da parcela com β
-        parcelaNormal = β * ϕᵉ_a * ϕᵉ[b]
+        parcelaNormal = β * ϕᵉ_a * ϕᵉ[b] # Parcela referente ao termo linear: β⋅u(x)
 
         # Calcula a contribuição da parcela com γ (funcionava em 1D)
-        parcelaDerivada1 = 0 #γ * vec_Φ[a] * ∇ϕᵉ_b
+        parcelaDerivada1 = 0 #γ * vec_Φ[a] * ∇ϕᵉ_b # Parcela referente ao termo ???: (∇u⋅u)(x)
 
-        Kᵉ[a,b] += WW * (parcelaDerivada2 + parcelaNormal + parcelaDerivada1) * detJ
+        # Kᵉ[a,b] += WW * (parcelaDerivada2 + parcelaNormal + parcelaDerivada1) * detJ
+        Kᵉ[a,b] += WW * soma * detJ
       end
     end
   end
@@ -289,7 +298,7 @@ Descrição.
 
 ```
 """
-function montaK_geral(run_values::RunValues, malha::Malha)
+function montaK_geral(run_values::RunValues, malha::Malha, pseudo_a)
   (; ne, neq, dx, n_dim, Nx, base) = malha
 
   npg = 2
@@ -310,7 +319,7 @@ function montaK_geral(run_values::RunValues, malha::Malha)
     eqs_idx, Xᵉ = elem_coords(malha::Malha, e::Int)
 
     # Calcula a matriz local Kᵉ
-    montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, ϕξ, ∇ϕξ, n_dim, run_values)
+    montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, ϕξ, ∇ϕξ, n_dim, run_values, pseudo_a)
 
     # Itera sobre as colunas (b) e linhas (a) da matriz local Kᵉ
     @inbounds for b in 1:2^n_dim
@@ -443,7 +452,10 @@ Monta e soluciona o sistema linear KC = F.
 ```
 """
 function solveSys_geral(run_values::RunValues, malha::Malha)
-  K = montaK_geral(run_values, malha)
+  (; α, β) = run_values
+  pseudo_a(u, v, ∇u, ∇v) = α*dot(∇u, ∇v) + β*dot(u, v)
+  # pseudo_a(u, v, ∇u, ∇v) = [α*[∇u, ∇v], β*[u, v]]
+  K = montaK_geral(run_values, malha, pseudo_a)
 
   F = montaF_geral(run_values, malha)
 
