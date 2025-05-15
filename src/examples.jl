@@ -65,3 +65,10 @@ end
 #   u:: Function = () => ()
 #   RunValues() = new()
 # end
+
+struct TermosEquacao
+  u
+  v
+  ∇u
+  ∇v
+end

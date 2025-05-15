@@ -256,25 +256,24 @@ function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, run_values::Ru
       for b in 1:2^n_dim
         # Aplica a mudança de variável de ∇ϕᵉ_b para ∇Φ_b
         ∇ϕᵉ_b = detJ⁻¹H * ∇Φ(ξ, b)
+
+        ϕᵉ_b = ϕᵉ[b]
         
-        # soma = 0
-        # parcelas = pseudo_a(ϕᵉ[b], ϕᵉ[a], ∇ϕᵉ_b, ∇ϕᵉ_a)
-        # for prod in parcelas
-        #   soma += dot(prod[1], prod[2])
-        # end
-        
-        soma = pseudo_a(ϕᵉ[b], ϕᵉ[a], ∇ϕᵉ_b, ∇ϕᵉ_a)
+        termos_equacao = TermosEquacao(
+          ϕᵉ_b, 
+          ϕᵉ_a, 
+          ∇ϕᵉ_b, 
+          ∇ϕᵉ_a
+        )
+        soma = pseudo_a(termos_equacao)
 
-        # Calcula a contribuição da parcela com α 
-        parcelaDerivada2 = α * dot(∇ϕᵉ_b, ∇ϕᵉ_a) # Parcela referente ao termo laplaciano: -α⋅Δu(x)
+        # soma = pseudo_a(; 
+        #   ∇u=∇ϕᵉ_b, 
+        #   u=ϕᵉ_b, 
+        #   v=ϕᵉ_a, 
+        #   ∇v=∇ϕᵉ_a
+        # )
 
-        # Calcula a contribuição da parcela com β
-        parcelaNormal = β * ϕᵉ_a * ϕᵉ[b] # Parcela referente ao termo linear: β⋅u(x)
-
-        # Calcula a contribuição da parcela com γ (funcionava em 1D)
-        parcelaDerivada1 = 0 #γ * vec_Φ[a] * ∇ϕᵉ_b # Parcela referente ao termo ???: (∇u⋅u)(x)
-
-        # Kᵉ[a,b] += WW * (parcelaDerivada2 + parcelaNormal + parcelaDerivada1) * detJ
         Kᵉ[a,b] += WW * soma * detJ
       end
     end
@@ -453,8 +452,13 @@ Monta e soluciona o sistema linear KC = F.
 """
 function solveSys_geral(run_values::RunValues, malha::Malha)
   (; α, β) = run_values
-  pseudo_a(u, v, ∇u, ∇v) = α*dot(∇u, ∇v) + β*dot(u, v)
-  # pseudo_a(u, v, ∇u, ∇v) = [α*[∇u, ∇v], β*[u, v]]
+
+  function pseudo_a(termos_equacao::TermosEquacao)
+    (; ∇u, ∇v, u, v) = termos_equacao
+
+    return α*dot(∇u, ∇v) + β*dot(u, v)
+  end
+  
   K = montaK_geral(run_values, malha, pseudo_a)
 
   F = montaF_geral(run_values, malha)
