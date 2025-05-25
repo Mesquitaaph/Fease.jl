@@ -234,7 +234,7 @@ function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, run_values::Ru
   for ξ in 1:npg
     # Vetor com o valor das funções locais Φ avaliadas no ponto de Gauss ξ = (ξ₁, ξ₂, ξᵢ...)
     ϕᵉ = Φξ[ξ,:]
-
+    
     x = mudanca_variavel_xξ(Xᵉ, ϕᵉ, n_dim)
 
     # Matriz e determinante do Jacobiano
@@ -475,4 +475,49 @@ function solveSys_geral(run_values::RunValues, malha::Malha)
   C .= K\F
 
   return C
+end
+
+function monta_u_aproximada(c, malha::Malha)
+  (; neq, coords, n_dim, ne, EQoLG, base) = malha
+  d = [c..., 0]
+
+  ξₓ(x, x₀, x_f) = Tuple(2 .*(x .- x₀)./(x_f .- x₀) .- 1)
+  
+  function uh(x...)
+    soma = 0
+    for e in 1:ne
+      j, Xᵉ = elem_coords(malha::Malha, e::Int)
+      x₀ = [Xᵉ[1][1], Xᵉ[2][1]]
+      x_f = [Xᵉ[1][end], Xᵉ[2][end]]
+      
+      if all((x .- x₀) .>= 0) && all((x_f .- x) .> 0)
+        ξ = ξₓ(x, x₀, x_f)
+        
+        soma += dot(d[j], ϕ_geral(ξ...)[1])
+      end
+    end
+
+    return soma
+  end
+
+  return uh
+end
+
+function plot_solucao_aproximada(c, malha::Malha)
+  (; a, b) = malha
+  x = range(a[1], b[1], length = 40)
+  y = range(a[2], b[2], length = 40)
+
+  uh = monta_u_aproximada(c, malha)
+
+  # display(plot(x, y, uh, st=:surface))
+  n = 500
+  @gif for i in range(0, stop = 360, length = n)
+    # create a plot with 3 subplots and a custom layout
+    p = plot(x, y, uh, st = :surface)
+
+    # induce a slight oscillating camera angle sweep, in degrees (azimuth, altitude)
+    plot!(p[1], camera = (i, 40))
+    display(p)
+  end
 end

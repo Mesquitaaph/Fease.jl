@@ -72,10 +72,26 @@ function single_run_2D()
     0.9322462987801565
     0.659197679603509
   ]
+
+  # display(c_geral)
   
-  display(c ≈ correct_result_ex1)
-  display(c_geral ≈ correct_result_ex1)
-  display(c ≈ c_geral)
+  # display(c ≈ correct_result_ex1)
+  # display(c_geral ≈ correct_result_ex1)
+  # display(c ≈ c_geral)
+
+  # uh = monta_u_aproximada(c_geral, malha)
+
+  # X1 = 0:0.1:1
+  # u_aprox = uh.(X1,0.5)
+  # u_exato = u.(X1,0.5)
+  # println((uh.(X₁[2:end-1,2:end-1],X₂[2:end-1,2:end-1]))[:] - correct_result_ex1)
+  # println(abs.(u_aprox - u_exato))
+  # display(all(abs.(u_aprox - u_exato) .< 0.01))
+
+
+  plot_solucao_aproximada(c_geral, malha)
+
+  return
 
   # Exibe a solução aproximada (vetor c) e a solução exata (vetor c_exato)
   # display("Solução aproximada:")
