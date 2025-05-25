@@ -155,7 +155,7 @@ function mudanca_variavel_xξ(Xᵉ, Φξ, n_dim)
   for d in 1:n_dim
     x = (x..., dot(Xᵉ[d], Φξ))
   end
-  return x
+  return [x...]
 end
 
 """
@@ -235,6 +235,8 @@ function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, run_values::Ru
     # Vetor com o valor das funções locais Φ avaliadas no ponto de Gauss ξ = (ξ₁, ξ₂, ξᵢ...)
     ϕᵉ = Φξ[ξ,:]
 
+    x = mudanca_variavel_xξ(Xᵉ, ϕᵉ, n_dim)
+
     # Matriz e determinante do Jacobiano
     M, detJ = jacobiano(n_dim, Xᵉ, ∇Φξ, ξ)
     @assert detJ > 0 "O determinante jacobiano deve ser positivo"
@@ -263,7 +265,8 @@ function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, run_values::Ru
           ϕᵉ_b, 
           ϕᵉ_a, 
           ∇ϕᵉ_b, 
-          ∇ϕᵉ_a
+          ∇ϕᵉ_a,
+          x
         )
         soma = pseudo_a(termos_equacao)
 
@@ -454,11 +457,13 @@ function solveSys_geral(run_values::RunValues, malha::Malha)
   (; α, β) = run_values
 
   _a = [1, 2]
+  # α(x) = 2*x
 
   function pseudo_a(termos_equacao::TermosEquacao)
-    (; ∇u, ∇v, u, v) = termos_equacao
+    (; ∇u, ∇v, u, v, x) = termos_equacao
     # α(x)
-    return β*dot(u, v) + dot(dot(_a,∇u), v)
+    # return β*dot(u, v) + dot(dot(_a,∇u), v) + dot(α(x), ∇v)
+    return β*dot(u, v) + α*dot(∇u, ∇v)
   end
   
   K = montaK_geral(run_values, malha, pseudo_a)
