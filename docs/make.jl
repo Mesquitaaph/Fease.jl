@@ -26,7 +26,7 @@ Dev_Colab = "Desenvolvimento Colaborativo" => [
 makedocs(;
   modules = [MyProject],
   doctest = true,
-  linkcheck = true, # Rely on Lint.yml/lychee for the links
+  linkcheck = false, # Rely on Lint.yml/lychee for the links
   authors = "Raphael Mesquita <raphaelfcm@ic.ufrj.br> and contributors",
   repo = "https://github.com/Mesquitaaph/MyProject.jl/blob/{commit}{path}#{line}",
   sitename = "MyProject.jl",
