@@ -24,3 +24,7 @@ end
 function display_fieldnames(obj) 
   return fieldnames(typeof(obj))
 end
+
+function test_revise() # Nos testes, verificar se essa saida é true
+  return true
+end
