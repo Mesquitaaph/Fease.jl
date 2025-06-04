@@ -1,9 +1,9 @@
 module MyProject
 
 # Dependencias do modulo
-using 
-  BenchmarkTools, GaussQuadrature, Plots, BandedMatrices, Printf, 
-  DataFrames, Latexify, Statistics, SparseArrays, LinearAlgebra, Random
+using
+      BenchmarkTools, GaussQuadrature, Plots, BandedMatrices, Printf,
+      DataFrames, Latexify, Statistics, SparseArrays, LinearAlgebra, Random
 
 include("utils.jl")
 
@@ -23,7 +23,6 @@ include("convergence.jl")
 
 include("testes/include_testes.jl")
 
-
 export format_num, measure_func, test_revise
 
 export Malha, monta_malha_1D_uniforme, monta_malha_2D_uniforme, malha2D_adiciona_ruido
@@ -32,11 +31,7 @@ export examples, RunValues
 
 export BaseTypes, LocalBases, monta_base
 
-export solveSys, PHI, PHI_original
-
 export exemplo1
-
-export convergence_test!
 
 export solveSys_geral, montaK_geral, montaF_geral
 
