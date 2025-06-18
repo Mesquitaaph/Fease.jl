@@ -10,7 +10,7 @@ function test_montaLG()
   println("LG 1D: $LG1D")
 
   LG2D = monta_LG_2D(5, 4) == montaLG_geral(5, 4)
-  println("LG 2D: $LG2D")
+  return println("LG 2D: $LG2D")
 end
 test_montaLG()
 
@@ -36,7 +36,7 @@ function test_montaEQ()
       end
     end
   end
-  println("EQ 2D: $EQ2D")
+  return println("EQ 2D: $EQ2D")
 end
 test_montaEQ()
 
@@ -67,8 +67,7 @@ function test_ϕ()
       end
     end
   end
-  println(teste_2D ? "ok\n" : "nok\n")
-
+  return println(teste_2D ? "ok\n" : "nok\n")
 end
 test_ϕ()
 
@@ -79,7 +78,6 @@ function test_∇ϕ()
   print("∇ϕ 1D: ")
   teste_1D = true
 
-  
   for ξ₁ in P
     if !(∇ϕ_1D(ξ₁) == ∇ϕ_geral(ξ₁))
       teste_1D = false
@@ -101,46 +99,46 @@ function test_∇ϕ()
       end
     end
   end
-  println(teste_2D ? "ok\n" : "nok\n")
-
+  return println(teste_2D ? "ok\n" : "nok\n")
 end
 test_∇ϕ()
 
-
 function test_avalia_quadratura_∇ϕ()
-  function avaliar_quadratura_geral_ϕ(base_func::Function, npg::Int64, n_funcs::Int64, n_dim::Int64)
+  function avaliar_quadratura_geral_ϕ(
+      base_func::Function, npg::Int64, n_funcs::Int64, n_dim::Int64)
     P, W = quadratura_gauss(npg, n_dim)
-  
+
     ϕPₙ = ()
     for d in 1:n_dim
       ϕP = zeros(npg^n_dim, n_funcs^n_dim)
-      for ξ in 1:npg^n_dim
+      for ξ in 1:(npg ^ n_dim)
         ϕP[ξ, :] .= base_func(P[ξ]...)[1]
       end
       ϕPₙ = (ϕPₙ..., ϕP)
     end
-  
+
     return ϕPₙ, P, W
   end
-  
-  function avaliar_quadratura_geral(base_func::Function, npg::Int64, n_funcs::Int64, n_dim::Int64)
+
+  function avaliar_quadratura_geral(
+      base_func::Function, npg::Int64, n_funcs::Int64, n_dim::Int64)
     P, W = quadratura_gauss(npg, n_dim)
-  
+
     ϕPₙ = ()
     for d in 1:n_dim
       ϕP = zeros(npg^n_dim, n_funcs^n_dim)
-      for ξ in 1:npg^n_dim
+      for ξ in 1:(npg ^ n_dim)
         ϕP[ξ, :] .= base_func(P[ξ]...)[d]
       end
       ϕPₙ = (ϕPₙ..., ϕP)
     end
-  
+
     return ϕPₙ, P, W
   end
 
   println("Teste da avalia_quadratura para ∇ϕ")
   npg = 5
-  
+
   print("ϕ 1D: ")
   n_dim = 1
   ∇ϕξ_1D, P_1D, W_1D = avaliar_quadratura_geral(∇ϕ_1D, npg, 2, n_dim)
@@ -157,7 +155,7 @@ function test_avalia_quadratura_∇ϕ()
 
   # display(∇ϕξ_2D)
   # display(∇ϕξ_geral)
-  display(∇ϕξ_2D == ∇ϕξ_geral)
+  return display(∇ϕξ_2D == ∇ϕξ_geral)
   # display(P_geral)
 end
 

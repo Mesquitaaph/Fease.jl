@@ -11,7 +11,7 @@ function avaliar_quadratura(base_func::Function, npg::Int64, n_funcs::Int64, n_d
 end
 
 function xksi(ksi, e, X)
-  h = X[e+1] - X[e]
+  h = X[e + 1] - X[e]
   return h/2*(ksi+1) + X[e]
 end
 
@@ -20,7 +20,7 @@ function montaK_1D(run_values::RunValues, malha)
   (; ne, neq, dx, EQoLG) = malha
 
   npg = 2
-  
+
   phiP, P, W = avaliar_quadratura(ϕ_1D, npg, 2, 1)
   dphiP, P, W = avaliar_quadratura(∇ϕ_1D, npg, 2, 1)
 
@@ -32,7 +32,7 @@ function montaK_1D(run_values::RunValues, malha)
         parcelaDerivada1 = γ * W[ksi] * phiP[ksi, a] * dphiP[ksi, b];
         parcelaDerivada2 = 2*α/dx * W[ksi] * dphiP[ksi, a] * dphiP[ksi, b];
 
-        Ke[a,b] += parcelaDerivada2 + parcelaNormal + parcelaDerivada1
+        Ke[a, b] += parcelaDerivada2 + parcelaNormal + parcelaDerivada1
       end
     end
   end
@@ -44,7 +44,7 @@ function montaK_1D(run_values::RunValues, malha)
       for a in 1:2
         i = EQoLG[a, e]
         if i <= neq && j <= neq
-          K[i,j] += Ke[a,b]
+          K[i, j] += Ke[a, b]
         end
       end
     end
@@ -56,12 +56,12 @@ end
 function montaF_1D(run_values::RunValues, malha::Malha)
   (; dx, ne, neq, coords, EQoLG) = malha
   (; f) = run_values
-  
+
   X = coords[1]
   npg = 5
 
   phiP, P, W = avaliar_quadratura(ϕ_1D, npg, 2, 1)
-  
+
   F = zeros(neq+1)
   xPTne = zeros(npg, ne)
   @inbounds for e in 1:ne
@@ -88,7 +88,8 @@ function solveSys_1D(run_values::RunValues, malha::Malha)
 
   C .= K\F
 
-  F = nothing; K = nothing;
+  F = nothing;
+  K = nothing;
 
   return C, malha.EQoLG, xPTne
 end

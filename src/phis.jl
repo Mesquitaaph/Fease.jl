@@ -6,15 +6,14 @@ function ϕ_geral(P...)
   n_dim = length(P)
   phis = 2.0^(-n_dim) * ones(Float64, 2^n_dim)
   for d in 1:n_dim
-    for n_phi in 1:2^n_dim
-        sinal = floor((2.0^(d-1) + n_phi-1) * 2.0^-(d-1))
-        phis[n_phi] *= 1 + ((-1.0)^sinal)*P[d]
+    for n_phi in 1:(2 ^ n_dim)
+      sinal = floor((2.0^(d-1) + n_phi-1) * 2.0^-(d-1))
+      phis[n_phi] *= 1 + ((-1.0)^sinal)*P[d]
     end
   end
 
-  return (;phis)
+  return (; phis)
 end
-
 
 function ϕ_1D(P...)
   # Ela é preparada, não intencionalmente, para receber números de dimensão igual a 1 ou a 2
@@ -24,30 +23,28 @@ function ϕ_1D(P...)
       1-P[1],
       1+P[1]
     ]
-    return (;phis)
+    return (; phis)
   elseif n_dim == 2
     return 2.0^-n_dim * [
       (1-P[1]) * (1-P[2]),
       (1+P[1]) * (1-P[2]),
       (1-P[1]) * (1+P[2]),
-      (1+P[1]) * (1+P[2]),
+      (1+P[1]) * (1+P[2])
     ]
   else
     return Nothing
   end
 end
 
-
-function ϕ_2D(ξ₁::Float64, ξ₂::Float64) :: Vector{Float64}
+function ϕ_2D(ξ₁::Float64, ξ₂::Float64)::Vector{Float64}
   # É apenas a definição das ϕ lagrange linear para o caso 2D
-	[
-    (1-ξ₁)*(1-ξ₂)/4, 
-    (1+ξ₁)*(1-ξ₂)/4, 
+  return [
+    (1-ξ₁)*(1-ξ₂)/4,
+    (1+ξ₁)*(1-ξ₂)/4,
     (1-ξ₁)*(1+ξ₂)/4,
-    (1+ξ₁)*(1+ξ₂)/4 
+    (1+ξ₁)*(1+ξ₂)/4
   ]
 end
-
 
 function ∇ϕ_1D(P...)
   # É apenas a definição das dϕ lagrange linear para o caso 1D
@@ -58,12 +55,11 @@ function ∇ϕ_1D(P...)
       -1,
       1
     ]
-    return (;dphis)
+    return (; dphis)
   else
     return error("Dimensão não implementada")
   end
 end
-
 
 function ∂ϕ_∂ξ₁(ξ₂::Float64)::Vector{Float64}
   # É apenas a definição das ∂ϕ_∂ξ₁ lagrange linear para o caso 2D
@@ -80,7 +76,6 @@ function ∇ϕ_2D(ξ₁::Float64, ξ₂::Float64)
   return (∂ϕ_∂ξ₁(ξ₂), ∂ϕ_∂ξ₂(ξ₁))
 end
 
-
 function ∇ϕ_geral(P...)
   # Apenas retorna ∇ϕ respectivo ao número da dimensão
   n_dim = length(P)
@@ -92,5 +87,4 @@ function ∇ϕ_geral(P...)
   else
     return error("Dimensão não implementada")
   end
-
 end

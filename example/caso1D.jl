@@ -2,7 +2,8 @@ using MyProject
 
 example = 1
 
-alpha, beta, gamma, a, b, u, u_x, f = examples(example); Nx1 = ne = 2^3
+alpha, beta, gamma, a, b, u, u_x, f = examples(example);
+Nx1 = ne = 2^3
 
 run_values = RunValues(alpha, beta, gamma, f, u)
 

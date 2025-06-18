@@ -13,15 +13,15 @@ end
 function measure_func(func, args)
   bench = @benchmark $func(($args)...)
   return (
-      worst = maximum(bench.times),
-      best = minimum(bench.times),
-      mean = mean(bench.times),
-      allocs = bench.allocs,
-      memory = bench.memory
-  ) 
+    worst = maximum(bench.times),
+    best = minimum(bench.times),
+    mean = mean(bench.times),
+    allocs = bench.allocs,
+    memory = bench.memory
+  )
 end
 
-function display_fieldnames(obj) 
+function display_fieldnames(obj)
   return fieldnames(typeof(obj))
 end
 

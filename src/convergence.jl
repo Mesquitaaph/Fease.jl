@@ -1,6 +1,6 @@
 # function erro_L2(base, ne, EQoLG, C, u, u_x, xPTne)
 #   npg = 5; P, W = legendre(npg)
-  
+
 #   phiP(ksi, a) = PHI(ksi, base)[a]; dphiP(ksi, a) = dPHI(ksi, base)[a];
 
 #   h = 1/ne
