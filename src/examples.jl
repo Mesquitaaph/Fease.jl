@@ -57,15 +57,6 @@ struct RunValues
   u:: Function
 end
 
-# mutable struct RunValues
-#   α:: Float64 = 0.0
-#   β:: Float64 = 0.0
-#   γ:: Float64 = 0.0
-#   f:: Function = () => ()
-#   u:: Function = () => ()
-#   RunValues() = new()
-# end
-
 struct TermosEquacao
   u
   v

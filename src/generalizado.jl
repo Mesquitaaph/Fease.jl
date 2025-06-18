@@ -217,7 +217,7 @@ Altera `Kᵉ`.
 
 ```
 """
-function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, run_values::RunValues, pseudo_a)
+function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, pseudo_a)
   # Zera as entradas da matriz local Kᵉ
   fill!(Kᵉ, 0.0)
 
@@ -225,8 +225,6 @@ function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, run_values::Ru
   function ∇Φ(ξ, a)
     return [∇Φξ[dim][ξ, a] for dim in 1:n_dim]
   end
-  
-  (; α, β, γ) = run_values
 
   npg = length(P)
 
@@ -270,14 +268,7 @@ function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, run_values::Ru
         )
         soma = pseudo_a(termos_equacao)
 
-        # soma = pseudo_a(; 
-        #   ∇u=∇ϕᵉ_b, 
-        #   u=ϕᵉ_b, 
-        #   v=ϕᵉ_a, 
-        #   ∇v=∇ϕᵉ_a
-        # )
-
-        Kᵉ[a,b] += WW * soma * detJ
+        Kᵉ[a, b] += WW * soma * detJ
       end
     end
   end
@@ -300,7 +291,7 @@ Descrição.
 
 ```
 """
-function montaK_geral(run_values::RunValues, malha::Malha, pseudo_a)
+function montaK_geral(malha::Malha, pseudo_a)
   (; ne, neq, dx, n_dim, Nx, base) = malha
 
   npg = 2
@@ -321,7 +312,7 @@ function montaK_geral(run_values::RunValues, malha::Malha, pseudo_a)
     eqs_idx, Xᵉ = elem_coords(malha::Malha, e::Int)
 
     # Calcula a matriz local Kᵉ
-    montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, ϕξ, ∇ϕξ, n_dim, run_values, pseudo_a)
+    montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, ϕξ, ∇ϕξ, n_dim, pseudo_a)
 
     # Itera sobre as colunas (b) e linhas (a) da matriz local Kᵉ
     @inbounds for b in 1:2^n_dim
@@ -405,8 +396,7 @@ Descrição.
 
 ```
 """
-function montaF_geral(run_values::RunValues, malha::Malha)
-  (; f) = run_values
+function montaF_geral(f::Function, malha::Malha)
   (; ne, neq, n_dim, base) = malha
   
   npg = 5
@@ -454,21 +444,27 @@ Monta e soluciona o sistema linear KC = F.
 ```
 """
 function solveSys_geral(run_values::RunValues, malha::Malha)
-  (; α, β) = run_values
+  (; α, β, f) = run_values
 
   _a = [1, 2]
   # α(x) = 2*x
 
   function pseudo_a(termos_equacao::TermosEquacao)
     (; ∇u, ∇v, u, v, x) = termos_equacao
-    # α(x)
-    # return β*dot(u, v) + dot(dot(_a,∇u), v) + dot(α(x), ∇v)
-    return β*dot(u, v) + α*dot(∇u, ∇v)
+
+    # return β * dot(u, v) + dot(dot(_a, ∇u), v) + dot(α(x), ∇v)
+    return β * dot(u, v) + α * dot(∇u, ∇v)
   end
   
-  K = montaK_geral(run_values, malha, pseudo_a)
+  C = solve_sys(f, malha, pseudo_a)
 
-  F = montaF_geral(run_values, malha)
+  return C
+end
+
+function solve_sys(f, malha, pseudo_a)
+  K = montaK_geral(malha, pseudo_a)
+
+  F = montaF_geral(f, malha)
 
   C = zeros(Float64, malha.neq)
 
@@ -478,7 +474,7 @@ function solveSys_geral(run_values::RunValues, malha::Malha)
 end
 
 function monta_u_aproximada(c, malha::Malha)
-  (; neq, coords, n_dim, ne, EQoLG, base) = malha
+  (; ne) = malha
   d = [c..., 0]
 
   ξₓ(x, x₀, x_f) = Tuple(2 .*(x .- x₀)./(x_f .- x₀) .- 1)

@@ -33,7 +33,7 @@ export BaseTypes, LocalBases, monta_base
 
 export exemplo1
 
-export solveSys_geral, montaK_geral, montaF_geral
+export solveSys_geral, solve_sys, montaK_geral, montaF_geral
 
 export dot
 
