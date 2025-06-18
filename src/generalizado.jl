@@ -42,7 +42,7 @@ function quadratura_gauss(npg::Int, n_dim::Int)
   # Os pontos de Gauss são definidos como combinações dos n_dim eixos
   # A ordem das combinações é do eixo de maior número para o menor
   # Exemplo para n_dim = 2: para trocar o ponto no eixo ξ₁ primeiro passa por todos os pontos no eixo ξ₂.
-  for i in 1:(npg ^ n_dim)
+  for i in 1:(npg^n_dim)
     ponto = ()
     peso = ()
     for d in 1:n_dim
@@ -84,7 +84,7 @@ function quadratura_ϕ(base, npg::Int, n_dim::Int) # Acho que esse base posso mu
 
   ϕP = zeros(Float64, npg^n_dim, n_funcs^n_dim)
   # Para todos os pontos de Gauss, avalia as ϕ locais
-  for ξ in 1:(npg ^ n_dim)
+  for ξ in 1:(npg^n_dim)
     ϕP[ξ, :] .= ϕ_geral(P[ξ]...)[1]
   end
 
@@ -121,7 +121,7 @@ function quadratura_∇ϕ(base, npg::Int, n_dim::Int) # Acho que esse base posso
     ∂ϕᵢP = zeros(npg^n_dim, n_funcs^n_dim)
 
     # Para todos os pontos de Gauss, avalia as ∂ϕᵢ locais (i = d)
-    for ξ in 1:(npg ^ n_dim)
+    for ξ in 1:(npg^n_dim)
       ∂ϕᵢP[ξ, :] .= ∇ϕ_geral(P[ξ]...)[d]
     end
     ∇ϕP = (∇ϕP..., ∂ϕᵢP)
@@ -250,11 +250,11 @@ function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, pseudo_a)
     detJ⁻¹H = 1 / detJ * H
 
     # Calcula a contribuição de quadratura e acumula o valor na matriz Kᵉ
-    @inbounds for a in 1:(2 ^ n_dim)
+    @inbounds for a in 1:(2^n_dim)
       # Aplica a mudança de variável de ∇ϕᵉ_a para ∇Φ_a
       ∇ϕᵉ_a = detJ⁻¹H * ∇Φ(ξ, a)
       ϕᵉ_a = ϕᵉ[a]
-      for b in 1:(2 ^ n_dim)
+      for b in 1:(2^n_dim)
         # Aplica a mudança de variável de ∇ϕᵉ_b para ∇Φ_b
         ∇ϕᵉ_b = detJ⁻¹H * ∇Φ(ξ, b)
 
@@ -316,9 +316,9 @@ function montaK_geral(malha::Malha, pseudo_a)
     montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, ϕξ, ∇ϕξ, n_dim, pseudo_a)
 
     # Itera sobre as colunas (b) e linhas (a) da matriz local Kᵉ
-    @inbounds for b in 1:(2 ^ n_dim)
+    @inbounds for b in 1:(2^n_dim)
       j = eqs_idx[b]
-      for a in 1:(2 ^ n_dim)
+      for a in 1:(2^n_dim)
         i = eqs_idx[a]
         if i <= neq && j <= neq
           K[i, j] += Kᵉ[a, b]
@@ -374,7 +374,7 @@ function montaFᵉ_geral!(Fᵉ, f, Xᵉ, P, W, ϕξ, ∇ϕξ, n_dim)
     WW = prod(W[ξ])
 
     # Calcula a contribuição de quadratura e acumula o valor no vetor Fᵉ
-    for a in 1:(2 ^ n_dim)
+    for a in 1:(2^n_dim)
       @inbounds Fᵉ[a] += WW * f(x...) * ϕᵉ[a] * detJ
     end
   end
@@ -418,7 +418,7 @@ function montaF_geral(f::Function, malha::Malha)
     montaFᵉ_geral!(Fᵉ, f, Xᵉ, P, W, ϕξ, ∇ϕξ, n_dim)
 
     # Adiciona a contribuição do elemento finito ao vetor global F
-    for a in 1:(2 ^ n_dim)
+    for a in 1:(2^n_dim)
       i = eqs_idx[a]
       F[i] += Fᵉ[a]
     end
@@ -454,6 +454,20 @@ function solveSys_geral(run_values::RunValues, malha::Malha)
     (; ∇u, ∇v, u, v, x) = termos_equacao
 
     # return β * dot(u, v) + dot(dot(_a, ∇u), v) + dot(α(x), ∇v)
+    return β * dot(u, v) + α * dot(∇u, ∇v)
+  end
+
+  C = solve_sys(f, malha, pseudo_a)
+
+  return C
+end
+
+function solve_sys_poisson(run_values::RunValues, malha::Malha)
+  (; α, β, f) = run_values
+
+  function pseudo_a(termos_equacao::TermosEquacao)
+    (; ∇u, ∇v, u, v) = termos_equacao
+
     return β * dot(u, v) + α * dot(∇u, ∇v)
   end
 
