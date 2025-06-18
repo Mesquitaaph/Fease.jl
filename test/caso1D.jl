@@ -1,5 +1,5 @@
 function single_run_1D(example)
-  alpha, beta, gamma, a, b, u, u_x, f = examples(example);
+  alpha, beta, gamma, a, b, u, u_x, f = examples(example)
   ne = 2^3
 
   run_values = RunValues(alpha, beta, gamma, f, u)
@@ -9,7 +9,7 @@ function single_run_1D(example)
 
   malha = monta_malha_1D_uniforme(ne, base, a, b)
 
-  C = solveSys_geral(run_values, malha)
+  C = solve_sys_poisson(run_values, malha)
 
   return C
 end
