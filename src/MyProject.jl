@@ -27,13 +27,13 @@ export format_num, measure_func, test_revise
 
 export Malha, monta_malha_1D_uniforme, monta_malha_2D_uniforme, malha2D_adiciona_ruido
 
-export examples, RunValues
+export examples, RunValues, TermosEquacao
 
 export BaseTypes, LocalBases, monta_base
 
 export exemplo1
 
-export solveSys_geral, solve_sys, montaK_geral, montaF_geral
+export solveSys_geral, solve_sys, solve_sys_poisson, montaK_geral, montaF_geral
 
 export dot
 
