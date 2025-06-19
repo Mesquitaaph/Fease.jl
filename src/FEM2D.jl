@@ -1,12 +1,3 @@
-function exemplo1()
-  alpha = 1.0
-  beta = 1.0
-  f(x₁, x₂) = (2*alpha*π^2+beta) * sin(π*x₁) * sin(π*x₂)
-  u(x₁, x₂) = sin(π*x₁) * sin(π*x₂)
-
-  return alpha, beta, f, u
-end
-
 function x₁_de_ξ(ξ₁::Float64, h₁::Float64, p₁::Float64)::Float64
   x₁ = p₁ + (h₁ / 2) * (ξ₁ + 1)
   return x₁
@@ -52,7 +43,7 @@ function monta_Kᵉ_quadrilatero!(
 
       # Calcula o determinante Jacobiano do mapeamento isoparamétrico
       detJ = ∂x₁_∂ξ₁ * ∂x₂_∂ξ₂ - ∂x₁_∂ξ₂ * ∂x₂_∂ξ₁
-      @assert detJ > 0 "O determinante jacobiano deve ser positivo"
+      @assert detJ>0 "O determinante jacobiano deve ser positivo"
 
       # Calcula as entradas da matriz Hᵀ * H
       HᵀH₁₁ = ∂x₂_∂ξ₂^2 + ∂x₁_∂ξ₂^2
@@ -63,14 +54,14 @@ function monta_Kᵉ_quadrilatero!(
       for b in 1:4
         for a in 1:4
           Kᵉ[a,
-            b] += W[i] * W[j] *
+          b] += W[i] * W[j] *
+                (
+                  (α / detJ) *
                   (
-                    (α / detJ) *
-                    (
-                    vec_∂ϕ_∂ξ₁[b] * (HᵀH₁₁ * vec_∂ϕ_∂ξ₁[a] + HᵀH₁₂ * vec_∂ϕ_∂ξ₂[a]) +
-                    vec_∂ϕ_∂ξ₂[b] * (HᵀH₁₂ * vec_∂ϕ_∂ξ₁[a] + HᵀH₂₂ * vec_∂ϕ_∂ξ₂[a])
-                  ) + β * vec_ϕ[b] * vec_ϕ[a] * detJ
-                  )
+                  vec_∂ϕ_∂ξ₁[b] * (HᵀH₁₁ * vec_∂ϕ_∂ξ₁[a] + HᵀH₁₂ * vec_∂ϕ_∂ξ₂[a]) +
+                  vec_∂ϕ_∂ξ₂[b] * (HᵀH₁₂ * vec_∂ϕ_∂ξ₁[a] + HᵀH₂₂ * vec_∂ϕ_∂ξ₂[a])
+                ) + β * vec_ϕ[b] * vec_ϕ[a] * detJ
+                )
         end
       end
     end
@@ -93,7 +84,7 @@ function monta_K_quadrilatero(
   Kᵉ = zeros(4, 4)
 
   # Inicializa a matriz esparsa K com tamanho (m+1) x (m+1)
-  K = spzeros(m+1, m+1)
+  K = spzeros(m + 1, m + 1)
 
   # Loop sobre os elementos
   for e in 1:ne
@@ -155,7 +146,7 @@ function monta_Fᵉ_quadrilatero!(Fᵉ::Vector{Float64}, f::Function, X1e::Vecto
       # Calcula o determinante jacobiano do mapeamento isoparamétrico
       detJ = dot(X1e, vec_∂ϕ_∂ξ₁) * dot(X2e, vec_∂ϕ_∂ξ₂) -
              dot(X1e, vec_∂ϕ_∂ξ₂) * dot(X2e, vec_∂ϕ_∂ξ₁)
-      @assert detJ > 0 "O determinante jacobiano deve ser positivo"
+      @assert detJ>0 "O determinante jacobiano deve ser positivo"
 
       # Calcula a contribuição de quadratura e acumula em Fᵉ
       for a in 1:4
@@ -181,7 +172,7 @@ function monta_F_quadrilatero(run_values::RunValues, malha::Malha)::Vector{Float
 
   # Inicializa os vetores locais e globais
   Fᵉ = zeros(4)
-  F = zeros(m+1)
+  F = zeros(m + 1)
 
   # Itera sobre os elementos Ωᵉ
   for e in 1:ne
@@ -285,7 +276,7 @@ end
 function malha2D_adiciona_ruido!(
     X₁::Matrix{Float64}, X₂::Matrix{Float64}, h₁::Float64, h₂::Float64)
   # Verifica se as matrizes têm a mesma dimensão
-  @assert size(X₁) == size(X₂) "X₁ e X₂ devem ter as mesmas dimensões"
+  @assert size(X₁)==size(X₂) "X₁ e X₂ devem ter as mesmas dimensões"
 
   # Verifica se a malha é suficientemente grande para ter nós internos
   if size(X₁, 1) > 2 && size(X₁, 2) > 2
@@ -294,11 +285,11 @@ function malha2D_adiciona_ruido!(
 
     # Aplica ruído uniforme aos nós internos
     X₁[2:(end - 1),
-      2:(end - 1)] .+= ruído_limite₁ *
-                       (rand(Float64, size(X₁[2:(end - 1), 2:(end - 1)])) .- 0.5) * 2
+    2:(end - 1)] .+= ruído_limite₁ *
+                     (rand(Float64, size(X₁[2:(end - 1), 2:(end - 1)])) .- 0.5) * 2
     X₂[2:(end - 1),
-      2:(end - 1)] .+= ruído_limite₂ *
-                       (rand(Float64, size(X₂[2:(end - 1), 2:(end - 1)])) .- 0.5) * 2
+    2:(end - 1)] .+= ruído_limite₂ *
+                     (rand(Float64, size(X₂[2:(end - 1), 2:(end - 1)])) .- 0.5) * 2
   end
 end
 
@@ -343,8 +334,8 @@ function exemplo_malha2D(Nx1, Nx2; ruido = true)
 end
 
 let
-  Nx1 = 4;
-  Nx2 = 3;
+  Nx1 = 4
+  Nx2 = 3
 
   fig = exemplo_malha2D(Nx1, Nx2; ruido = false)  # Aqui a função é chamada inicialmente
   xlabel!(fig, "x_1")
