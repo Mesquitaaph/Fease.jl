@@ -498,8 +498,6 @@ function monta_u_aproximada(c, malha::Malha)
     soma = 0
     for e in 1:ne
       j, Xᵉ = elem_coords(malha::Malha, e::Int)
-      # x₀ = [Xᵉ[1][1], Xᵉ[2][1]]
-      # x_f = [Xᵉ[1][end], Xᵉ[2][end]]
 
       x₀ = []
       x_f = []
@@ -519,35 +517,4 @@ function monta_u_aproximada(c, malha::Malha)
   end
 
   return uh
-end
-
-function plot_solucao_aproximada(c::Array, malha::Malha, gif::Bool = false)
-  uh = monta_u_aproximada(c, malha)
-
-  return plot_solucao_aproximada(uh, malha, gif)
-end
-
-function plot_solucao_aproximada(uh::Function, malha::Malha, gif::Bool = false)
-  (; a, b, n_dim) = malha
-
-  X = ()
-  for dim in 1:n_dim
-    X = (X..., range(a[dim], b[dim], length = 40))
-  end
-
-  ST = (:path, :surface)
-
-  # create a plot with 3 subplots and a custom layout
-  p = plot(X..., uh, st = ST[n_dim])
-  if !gif
-    return display(p)
-  end
-
-  n = 100
-  @gif for i in range(0, stop = 360, length = n)
-
-    # induce a slight oscillating camera angle sweep, in degrees (azimuth, altitude)
-    plot!(p[1], camera = (i, 40))
-    display(p)
-  end
 end
