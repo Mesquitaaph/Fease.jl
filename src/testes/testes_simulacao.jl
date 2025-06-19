@@ -27,6 +27,8 @@ function single_run_1D(example)
 
   C = solveSys_geral(run_values, malha)
 
+  plot_solucao_aproximada(C, malha)
+
   return C
 end
 # display(single_run_1D(1) ≈ correct_result_ex1)
@@ -90,6 +92,7 @@ function single_run_2D()
   display("Exemplo 2: Adiciona ruído nos nós internos")
   Random.seed!(42)  # Define uma semente para reprodutibilidade
   malha = malha2D_adiciona_ruido(malha)
+  #plot_malha2D(malha)
 
   # Monta novamente K, F e resolve o sistema com a malha perturbada
   K = monta_K_quadrilatero(run_values, malha)
@@ -111,7 +114,9 @@ function single_run_2D()
 
   display(c ≈ correct_result_ex2)
   display(c_geral ≈ correct_result_ex2)
-  return display(c ≈ c_geral)
+  display(c ≈ c_geral)
+
+  # plot_solucao_aproximada(c_geral, malha, true)
 
   # Exibe a solução aproximada (vetor c) e a solução exata (vetor c_exato)
   # display("Solução aproximada:")
@@ -120,8 +125,9 @@ function single_run_2D()
   # display("Solução exata:")
   # display(c_exato)
   # display("─" ^ 40)  # Linha divisória
+  return
 end
-single_run_2D()
+# single_run_2D()
 
 function test_monta_F_1D()
   example = 1 # ou 2

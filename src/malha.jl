@@ -22,14 +22,14 @@ function montaLG_geral(Nx1::Int64, Nx2::Int64 = 0)
   # Monta o primeiro bloco
   LG1 = [i for i in 1:Nx1]
   for e in 1:Nx1
-    for a in 1:(2 ^ n_dim)
-      @inbounds LG[a, e] = LG1[e] + ((a-1) % 2) + (Nx1 + 1)*floor((a-1)/2)
+    for a in 1:(2^n_dim)
+      @inbounds LG[a, e] = LG1[e] + ((a - 1) % 2) + (Nx1 + 1) * floor((a - 1) / 2)
     end
   end
 
   # Preenche o restante dos blocos baseado no primeiro
   for e in (Nx1 + 1):ne
-    @inbounds LG[:, e] .= LG[:, e - Nx1] .+ (Nx1+1)
+    @inbounds LG[:, e] .= LG[:, e - Nx1] .+ (Nx1 + 1)
   end
 
   return LG
@@ -38,11 +38,11 @@ end
 function montaLG(ne, base)
   LG = zeros(Int64, ne, base.nB)
 
-  LG1 = [(base.nB-1)*i - (base.nB-2) for i in 1:ne]
+  LG1 = [(base.nB - 1) * i - (base.nB - 2) for i in 1:ne]
 
   for e in 1:ne
-    for a in 1:base.nB
-      @inbounds LG[e, a] = LG1[e] + (a-1)
+    for a in 1:(base.nB)
+      @inbounds LG[e, a] = LG1[e] + (a - 1)
     end
   end
 
@@ -61,7 +61,7 @@ function monta_LG_2D(Nx1::Int64, Nx2::Int64)::Matrix{Int64}
   linha1 = reshape(M, 1, :)
 
   # Constrói a matriz LG
-  LG = vcat(linha1, linha1 .+ 1, linha1 .+ nx1, linha1 .+ (nx1+1))
+  LG = vcat(linha1, linha1 .+ 1, linha1 .+ nx1, linha1 .+ (nx1 + 1))
 
   return LG
 end
@@ -70,15 +70,15 @@ function montaEQ_geral(Nx1::Int64, Nx2::Int64 = 0)
   n_dim = 1 + (Nx2 == 0 ? 0 : 1)
   ne = Nx1 * (Nx2 == 0 ? 1 : Nx2)
 
-  neq = (Nx1-1) * (Nx2 == 0 ? 1 : Nx2-1)
+  neq = (Nx1 - 1) * (Nx2 == 0 ? 1 : Nx2 - 1)
 
-  EQ = fill(neq+1, (Nx1+1) * (Nx2 == 0 ? 1 : Nx2+1))
+  EQ = fill(neq + 1, (Nx1 + 1) * (Nx2 == 0 ? 1 : Nx2 + 1))
 
   contador = 1
   for y in 1:(Nx2 + 1)
     for x in 1:(Nx1 + 1)
-      if !(x == 1 || x == Nx1+1 || (Nx2 > 0 && (y == 1 || y == Nx2+1)))
-        idx = x + (y-1)*(Nx1+1)
+      if !(x == 1 || x == Nx1 + 1 || (Nx2 > 0 && (y == 1 || y == Nx2 + 1)))
+        idx = x + (y - 1) * (Nx1 + 1)
         EQ[idx] = contador
         contador += 1
       end
@@ -89,13 +89,13 @@ function montaEQ_geral(Nx1::Int64, Nx2::Int64 = 0)
 end
 
 function montaEQ(ne, neq, base)
-  EQ = zeros(Int64, (base.nB-1)*ne+1)
+  EQ = zeros(Int64, (base.nB - 1) * ne + 1)
 
-  EQ[1] = neq+1;
-  EQ[end] = neq+1
+  EQ[1] = neq + 1
+  EQ[end] = neq + 1
 
   for i in 2:((base.nB - 1) * ne)
-    @inbounds EQ[i] = i-1
+    @inbounds EQ[i] = i - 1
   end
 
   return EQ
@@ -107,10 +107,10 @@ function monta_EQ_2D(Nx1::Int64, Nx2::Int64)
   nx2 = Nx2 + 1
 
   # Calcula o número de funções globais φ que compõem a base do espaço Vₘ
-  m = (nx1-2) * (nx2-2)
+  m = (nx1 - 2) * (nx2 - 2)
 
   # Inicializa o vetor EQ preenchido com m+1
-  EQ = fill(m+1, nx1 * nx2)
+  EQ = fill(m + 1, nx1 * nx2)
 
   # Vetor contendo os índices das funções globais φ que compõem a base do espaço Vₘ
   L = reshape((0:(nx1 - 3)) .+ ((nx1 + 2):nx1:((nx2 - 2) * nx1 + 2))', :, 1)
@@ -122,10 +122,10 @@ function monta_EQ_2D(Nx1::Int64, Nx2::Int64)
 end
 
 function monta_malha_1D_uniforme(ne, base, a, b)
-  dx = (b[1]-a[1]) / ne;
+  dx = (b[1] - a[1]) / ne
   X = collect(a:dx:b)
 
-  neq, EQ = montaEQ_geral(ne);
+  neq, EQ = montaEQ_geral(ne)
   LG = montaLG_geral(ne)
   EQoLG = EQ[LG]
 
@@ -138,7 +138,7 @@ end
 
 function monta_malha_2D_uniforme(base, Nx1, Nx2, a::Tuple, b::Tuple)::Malha
   # Define o comprimento da base (h₁) e altura (h₂) de cada elemento retangular Ωᵉ
-  h₁, h₂ = (b[1]-a[1]) / Nx1, (b[2]-a[2]) / Nx2
+  h₁, h₂ = (b[1] - a[1]) / Nx1, (b[2] - a[2]) / Nx2
   h = (; h₁, h₂)
 
   ne = Nx1 * Nx2
@@ -151,7 +151,7 @@ function monta_malha_2D_uniforme(base, Nx1, Nx2, a::Tuple, b::Tuple)::Malha
   X₁ = [x₁[i] for i in 1:(Nx1 + 1), j in 1:(Nx2 + 1)]
   X₂ = [x₂[j] for i in 1:(Nx1 + 1), j in 1:(Nx2 + 1)]
 
-  neq, EQ = montaEQ_geral(Nx1, Nx2);
+  neq, EQ = montaEQ_geral(Nx1, Nx2)
   LG = montaLG_geral(Nx1, Nx2)
   EQoLG = EQ[LG]
 
@@ -165,20 +165,21 @@ function malha2D_adiciona_ruido(malha::Malha)::Malha
   (X₁, X₂) = malha.coords
   (; h₁, h₂) = malha.dx
   # Verifica se as matrizes têm a mesma dimensão
-  @assert size(X₁) == size(X₂) "X₁ e X₂ devem ter as mesmas dimensões"
+  @assert size(X₁)==size(X₂) "X₁ e X₂ devem ter as mesmas dimensões"
 
+  noise_magnitude = 4
   # Verifica se a malha é suficientemente grande para ter nós internos
   if size(X₁, 1) > 2 && size(X₁, 2) > 2
     # Define os limites do ruído
-    ruído_limite₁, ruído_limite₂ = h₁ / 4, h₂ / 4
+    ruído_limite₁, ruído_limite₂ = h₁ / noise_magnitude, h₂ / noise_magnitude
 
     # Aplica ruído uniforme aos nós internos
     X₁[2:(end - 1),
-      2:(end - 1)] .+= ruído_limite₁ *
-                       (rand(Float64, size(X₁[2:(end - 1), 2:(end - 1)])) .- 0.5) * 2
+    2:(end - 1)] .+= ruído_limite₁ *
+                     (rand(Float64, size(X₁[2:(end - 1), 2:(end - 1)])) .- 0.5) * 2
     X₂[2:(end - 1),
-      2:(end - 1)] .+= ruído_limite₂ *
-                       (rand(Float64, size(X₂[2:(end - 1), 2:(end - 1)])) .- 0.5) * 2
+    2:(end - 1)] .+= ruído_limite₂ *
+                     (rand(Float64, size(X₂[2:(end - 1), 2:(end - 1)])) .- 0.5) * 2
   end
 
   return Malha(
@@ -190,4 +191,30 @@ function malha2D_adiciona_ruido(malha::Malha)::Malha
     malha.n_dim,
     malha.Nx
   )
+end
+
+function plot_malha2D(
+    malha::Malha
+)
+  # Cria uma nova figura
+  fig = Plots.plot(legend = false, aspect_ratio = :equal,
+    xticks = 0:0.25:1,  # Defina os ticks do eixo x
+    yticks = 0:0.25:1)  # Defina os ticks do eixo y
+
+  (; coords, LG, ne) = malha
+  (X₁, X₂) = coords
+  # Adiciona os nós da malha
+  Plots.scatter!(X₁, X₂, markersize = 4, color = :blue)
+
+  # Adiciona as linhas de contorno dos elementos
+  for e in 1:ne
+    # Obtém os índices dos nós do elemento `e`
+    i₁, i₂, i₃, i₄ = LG[:, e]
+
+    # Adiciona as linhas de contorno do elemento `e`
+    Plots.plot!([X₁[i₁], X₁[i₂], X₁[i₄], X₁[i₃], X₁[i₁]],
+      [X₂[i₁], X₂[i₂], X₂[i₄], X₂[i₃], X₂[i₁]], color = :black)
+  end
+
+  return display(fig)
 end
