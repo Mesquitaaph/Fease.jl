@@ -15,10 +15,10 @@ correct_result_ex2 = [0.3831328931456573
                       0.38313289314565724]
 
 function single_run_1D(example)
-  alpha, beta, gamma, a, b, u, u_x, f = examples_1D(example)
-  run_values = RunValues(alpha, beta, gamma, f, u)
+  run_values = examples_1D(example)
 
   ne = 2^3
+  a, b = 0, 1
 
   baseType = BaseTypes.linearLagrange
   base = monta_base(baseType, ne)
@@ -37,8 +37,7 @@ display(single_run_1D(1) ≈ correct_result_ex1)
 display(single_run_1D(2) ≈ correct_result_ex2)
 
 function single_run_2D(ruido::Bool = false)
-  alpha, beta, _, _, _, u, _, f = examples_2D(1)
-  run_values = RunValues(alpha, beta, 0.0, f, u)
+  run_values = examples_2D(1)
 
   Nx1, Nx2 = 4, 3
   ne = Nx1 * Nx2
@@ -77,6 +76,7 @@ function single_run_2D(ruido::Bool = false)
   end
 
   X₁, X₂ = malha.coords
+  (; u) = run_values
   # Calcula a solução exata nos nós internos da malha
   C_exato = u.(X₁[2:(end - 1), 2:(end - 1)], X₂[2:(end - 1), 2:(end - 1)])
   C_exato = C_exato[:]

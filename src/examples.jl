@@ -7,26 +7,24 @@ function examples_1D(case)
     alpha = 1.0
     beta = 1.0
     gamma = 0.0
-    a = 0.0
-    b = 1.0
+
     u(x) = x + (exp(-x) - exp(x)) / (exp(1.0) - exp(-1))
     u_x(x) = 1 - (exp(-x) + exp(x)) * (1 / (exp(1.0) - exp(-1)))
     f(x) = x
 
-    return Example(alpha, beta, gamma, a, b, u, u_x, f)
+    return RunValues(alpha, beta, gamma, f, u)
   end
 
   function example2()
     alpha = 1.0
     beta = 1.0
     gamma = 0.0
-    a = 0.0
-    b = 1.0
+
     f(x) = (alpha * π^2 + beta) * sin(π * x)
     u(x) = sin(π * x)
     u_x(x) = 0
 
-    return Example(alpha, beta, gamma, a, b, u, u_x, f)
+    return RunValues(alpha, beta, gamma, f, u)
   end
   # function example2()
   #   alpha = pi; beta = exp(1.0); gamma = 0.0; a = 0.0; b = 1.0;
@@ -41,14 +39,13 @@ function examples_1D(case)
     alpha = 1.0
     beta = 1.0
     gamma = 1.0
-    a = 0.0
-    b = 1.0
+
     u(x) = 4 * (x - 1 / 2)^2 - 1
     u_x(x) = 8 * (x - 1 / 2)
     u_xx(x) = 8
     f(x) = -alpha * u_xx(x) + gamma * u_x(x) + beta * u(x)
 
-    return Example(alpha, beta, gamma, a, b, u, u_x, f)
+    return RunValues(alpha, beta, gamma, f, u)
   end
 
   if case == 1
@@ -70,7 +67,7 @@ function examples_2D(case)
     f(x₁, x₂) = (2 * alpha * π^2 + beta) * sin(π * x₁) * sin(π * x₂)
     u(x₁, x₂) = sin(π * x₁) * sin(π * x₂)
 
-    return Example(alpha, beta, gamma, 0, 1, u, 0, f)
+    return RunValues(alpha, beta, gamma, f, u)
   end
 
   if case == 1

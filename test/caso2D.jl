@@ -1,7 +1,5 @@
 function single_run_2D(ruido::Bool = false)
-  α, β, f, u = exemplo1()
-
-  run_values = RunValues(α, β, 0.0, f, u)
+  run_values = examples_2D(1)
 
   Nx1, Nx2 = 4, 3
   ne = Nx1 * Nx2

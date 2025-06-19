@@ -1,8 +1,8 @@
 function single_run_1D(example)
-  alpha, beta, gamma, a, b, u, u_x, f = examples(example)
+  run_values = examples_1D(example)
   ne = 2^3
 
-  run_values = RunValues(alpha, beta, gamma, f, u)
+  a, b = 0, 1
 
   baseType = BaseTypes.linearLagrange
   base = monta_base(baseType, ne)
