@@ -16,16 +16,16 @@ correct_result_ex2 = [0.3831328931456573
 
 function single_run_1D(example)
   alpha, beta, gamma, a, b, u, u_x, f = examples(example)
-  ne = 2^3
-
   run_values = RunValues(alpha, beta, gamma, f, u)
+
+  ne = 2^3
 
   baseType = BaseTypes.linearLagrange
   base = monta_base(baseType, ne)
 
   malha = monta_malha_1D_uniforme(ne, base, a, b)
 
-  C = solveSys_geral(run_values, malha)
+  C = solve_sys_poisson(run_values, malha)
 
   plot_solucao_aproximada(C, malha)
 
@@ -34,34 +34,20 @@ end
 # display(single_run_1D(1) ≈ correct_result_ex1)
 # display(single_run_1D(2) ≈ correct_result_ex2)
 
-function single_run_2D()
-  # Carrega os parâmetros de entrada da EDP
+function single_run_2D(ruido::Bool = false)
   α, β, f, u = exemplo1()
 
   run_values = RunValues(α, β, 0.0, f, u)
 
-  # Define parâmetros da malha e monta a estrutura inicial
   Nx1, Nx2 = 4, 3
+  ne = Nx1 * Nx2
 
   baseType = BaseTypes.linearLagrange
-  base = monta_base(baseType, Nx1 * Nx2)
+  base = monta_base(baseType, ne)
 
   a = (0.0, 0.0)
   b = (1.0, 1.0)
   malha = monta_malha_2D_uniforme(base, Nx1, Nx2, a, b)
-
-  display("Exemplo 1: Malha uniforme de retângulos")
-
-  # Monta matriz K, vetor F e resolve o sistema linear Kc = F
-  K = monta_K_quadrilatero(run_values, malha)
-  F = monta_F_quadrilatero(run_values, malha)
-  c = K \ F
-
-  c_geral = solveSys_geral(run_values, malha)
-  X₁, X₂ = malha.coords
-  # Calcula a solução exata nos nós internos da malha
-  c_exato = u.(X₁[2:(end - 1), 2:(end - 1)], X₂[2:(end - 1), 2:(end - 1)])
-  c_exato = c_exato[:]
 
   correct_result_ex1 = [0.659197679603509
                         0.9322462987801567
@@ -70,41 +56,6 @@ function single_run_2D()
                         0.9322462987801565
                         0.659197679603509]
 
-  display(c ≈ correct_result_ex1)
-  display(c_geral ≈ correct_result_ex1)
-  display(c ≈ c_geral)
-
-  # uh = monta_u_aproximada(c_geral, malha)
-
-  # plot_solucao_aproximada(c_geral, malha)
-
-  # return
-
-  # Exibe a solução aproximada (vetor c) e a solução exata (vetor c_exato)
-  # display("Solução aproximada:")
-  # # display(c)
-  # display(c_geral)
-  # display("Solução exata:")
-  # display(c_exato)
-  # display("─" ^ 40)  # Linha divisória
-
-  # Exemplo 2: Malha com ruído nos nós internos
-  display("Exemplo 2: Adiciona ruído nos nós internos")
-  Random.seed!(42)  # Define uma semente para reprodutibilidade
-  malha = malha2D_adiciona_ruido(malha)
-  #plot_malha2D(malha)
-
-  # Monta novamente K, F e resolve o sistema com a malha perturbada
-  K = monta_K_quadrilatero(run_values, malha)
-  F = monta_F_quadrilatero(run_values, malha)
-  c = K \ F
-  c_geral = solveSys_geral(run_values, malha)
-
-  X₁, X₂ = malha.coords
-  # Calcula a solução exata nos nós internos da malha
-  c_exato = u.(X₁[2:(end - 1), 2:(end - 1)], X₂[2:(end - 1), 2:(end - 1)])
-  c_exato = c_exato[:]
-
   correct_result_ex2 = [0.7065102277637031
                         0.969014464383587
                         0.6584488958892918
@@ -112,22 +63,37 @@ function single_run_2D()
                         0.8893466262809584
                         0.7082557097977525]
 
-  display(c ≈ correct_result_ex2)
-  display(c_geral ≈ correct_result_ex2)
-  display(c ≈ c_geral)
+  if ruido
+    # Exemplo 2: Adiciona ruído nos nós internos
+    display("Exemplo 2: Adiciona ruído nos nós internos")
+    Random.seed!(42) # Define uma semente para reprodutibilidade
+    malha = malha2D_adiciona_ruido(malha)
+    correct_result = correct_result_ex2
+  else
+    # Exemplo 1: Malha uniforme de retângulos
+    display("Exemplo 1: Malha uniforme de retângulos")
+    correct_result = correct_result_ex1
+  end
 
-  # plot_solucao_aproximada(c_geral, malha, true)
+  X₁, X₂ = malha.coords
+  # Calcula a solução exata nos nós internos da malha
+  C_exato = u.(X₁[2:(end - 1), 2:(end - 1)], X₂[2:(end - 1), 2:(end - 1)])
+  C_exato = C_exato[:]
 
-  # Exibe a solução aproximada (vetor c) e a solução exata (vetor c_exato)
-  # display("Solução aproximada:")
-  # # display(c)
-  # display(c_geral)
-  # display("Solução exata:")
-  # display(c_exato)
-  # display("─" ^ 40)  # Linha divisória
-  return
+  K = monta_K_quadrilatero(run_values, malha)
+  F = monta_F_quadrilatero(run_values, malha)
+  C_2D = K \ F
+
+  C = solve_sys_poisson(run_values, malha)
+
+  display(C_2D ≈ correct_result)
+  display(C ≈ correct_result)
+  display(C_2D ≈ C)
+
+  return C
 end
-# single_run_2D()
+single_run_2D(false)
+single_run_2D(true)
 
 function test_monta_F_1D()
   example = 1 # ou 2
