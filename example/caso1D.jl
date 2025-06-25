@@ -1,21 +1,25 @@
 using MyProject
 
-example = 1
-
-alpha, beta, gamma, a, b, u, u_x, f = examples(example);
-Nx1 = ne = 2^3
-
-run_values = RunValues(alpha, beta, gamma, f, u)
+ne = 2^3
 
 baseType = BaseTypes.linearLagrange
 base = monta_base(baseType, ne)
 
-malha = monta_malha_1D_uniforme(Nx1, base, a, b)
+a, b = 0, 1
 
-K = montaK_geral(run_values, malha)
+malha = monta_malha_1D_uniforme(ne, base, a, b)
 
-F = montaF_geral(run_values, malha)
+example = 1
+run_values = examples_1D(example)
 
-C = K\F
+(; α, β, f) = run_values
+
+function pseudo_a(termos_equacao)
+  (; ∇u, ∇v, u, v) = termos_equacao
+
+  return β * dot(u, v) + α * dot(∇u, ∇v)
+end
+
+C = solve_sys(f, malha, pseudo_a)
 
 display(C)
