@@ -265,8 +265,8 @@ function malha2D(Nx1, Nx2)
   x₂ = collect(0:h₂:1)
 
   # Define as coordenadas de cada nó da malha
-  X₁ = [x₁[i] for i in 1:(Nx1 + 1), j in 1:(Nx2 + 1)]
-  X₂ = [x₂[j] for i in 1:(Nx1 + 1), j in 1:(Nx2 + 1)]
+  X₁ = [x₁[i] for i in 1:(Nx1+1), j in 1:(Nx2+1)]
+  X₂ = [x₂[j] for i in 1:(Nx1+1), j in 1:(Nx2+1)]
   # display(X₁)
   # display(X₂)
 
@@ -284,12 +284,12 @@ function malha2D_adiciona_ruido!(
     ruído_limite₁, ruído_limite₂ = h₁ / 4, h₂ / 4
 
     # Aplica ruído uniforme aos nós internos
-    X₁[2:(end - 1),
-    2:(end - 1)] .+= ruído_limite₁ *
-                     (rand(Float64, size(X₁[2:(end - 1), 2:(end - 1)])) .- 0.5) * 2
-    X₂[2:(end - 1),
-    2:(end - 1)] .+= ruído_limite₂ *
-                     (rand(Float64, size(X₂[2:(end - 1), 2:(end - 1)])) .- 0.5) * 2
+    X₁[2:(end-1),
+    2:(end-1)] .+= ruído_limite₁ *
+                   (rand(Float64, size(X₁[2:(end-1), 2:(end-1)])) .- 0.5) * 2
+    X₂[2:(end-1),
+    2:(end-1)] .+= ruído_limite₂ *
+                   (rand(Float64, size(X₂[2:(end-1), 2:(end-1)])) .- 0.5) * 2
   end
 end
 
@@ -340,6 +340,6 @@ let
   fig = exemplo_malha2D(Nx1, Nx2; ruido = false)  # Aqui a função é chamada inicialmente
   xlabel!(fig, "x_1")
   ylabel!(fig, "x_2")
-  yticks!(fig, 0:(1 / Nx2):1)             # Define ticks do eixo x₂
-  xticks!(fig, 0:(1 / Nx1):1, rotation = 45)# Define ticks do eixo x₁
+  yticks!(fig, 0:(1/Nx2):1)             # Define ticks do eixo x₂
+  xticks!(fig, 0:(1/Nx1):1, rotation = 45)# Define ticks do eixo x₁
 end

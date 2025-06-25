@@ -1,10 +1,10 @@
 function format_num(n)
   units = ["ns", "\$\\mu\$s", "ms", "s"]
-  unit = ceil(Int, trunc(Int, log10(n)+1)/3)
+  unit = ceil(Int, trunc(Int, log10(n) + 1) / 3)
 
-  exp_div3 = trunc(Int, trunc(Int, log10(n))/3)
+  exp_div3 = trunc(Int, trunc(Int, log10(n)) / 3)
 
-  num_sized = n/exp10(exp_div3*3)
+  num_sized = n / exp10(exp_div3 * 3)
   size_limit = 7
   size = length(string(num_sized)) > size_limit ? size_limit : length(string(num_sized))
   return string(num_sized)[1:size] * units[unit]

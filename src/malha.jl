@@ -28,8 +28,8 @@ function montaLG_geral(Nx1::Int64, Nx2::Int64 = 0)
   end
 
   # Preenche o restante dos blocos baseado no primeiro
-  for e in (Nx1 + 1):ne
-    @inbounds LG[:, e] .= LG[:, e - Nx1] .+ (Nx1 + 1)
+  for e in (Nx1+1):ne
+    @inbounds LG[:, e] .= LG[:, e-Nx1] .+ (Nx1 + 1)
   end
 
   return LG
@@ -55,7 +55,7 @@ function monta_LG_2D(Nx1::Int64, Nx2::Int64)::Matrix{Int64}
   nx2 = Nx2 + 1
 
   # M[:,j] contém a numeração da primeira linha do "Bloco j"
-  M = (1:(nx1 - 1)) .+ (0:nx1:((nx2 - 2) * nx1))'
+  M = (1:(nx1-1)) .+ (0:nx1:((nx2-2)*nx1))'
 
   # LG[1,:] contém a numeração global da primeira função local de cada elemento 
   linha1 = reshape(M, 1, :)
@@ -75,8 +75,8 @@ function montaEQ_geral(Nx1::Int64, Nx2::Int64 = 0)
   EQ = fill(neq + 1, (Nx1 + 1) * (Nx2 == 0 ? 1 : Nx2 + 1))
 
   contador = 1
-  for y in 1:(Nx2 + 1)
-    for x in 1:(Nx1 + 1)
+  for y in 1:(Nx2+1)
+    for x in 1:(Nx1+1)
       if !(x == 1 || x == Nx1 + 1 || (Nx2 > 0 && (y == 1 || y == Nx2 + 1)))
         idx = x + (y - 1) * (Nx1 + 1)
         EQ[idx] = contador
@@ -94,7 +94,7 @@ function montaEQ(ne, neq, base)
   EQ[1] = neq + 1
   EQ[end] = neq + 1
 
-  for i in 2:((base.nB - 1) * ne)
+  for i in 2:((base.nB-1)*ne)
     @inbounds EQ[i] = i - 1
   end
 
@@ -113,7 +113,7 @@ function monta_EQ_2D(Nx1::Int64, Nx2::Int64)
   EQ = fill(m + 1, nx1 * nx2)
 
   # Vetor contendo os índices das funções globais φ que compõem a base do espaço Vₘ
-  L = reshape((0:(nx1 - 3)) .+ ((nx1 + 2):nx1:((nx2 - 2) * nx1 + 2))', :, 1)
+  L = reshape((0:(nx1-3)) .+ ((nx1+2):nx1:((nx2-2)*nx1+2))', :, 1)
 
   # Atribui os valores de 1 até m as funções globais φ que compõem a base do espaço Vₘ
   EQ[L] = 1:m
@@ -148,8 +148,8 @@ function monta_malha_2D_uniforme(base, Nx1, Nx2, a::Tuple, b::Tuple)::Malha
   x₂ = collect(a[2]:h₂:b[2])
 
   # Define as coordenadas de cada nó da malha
-  X₁ = [x₁[i] for i in 1:(Nx1 + 1), j in 1:(Nx2 + 1)]
-  X₂ = [x₂[j] for i in 1:(Nx1 + 1), j in 1:(Nx2 + 1)]
+  X₁ = [x₁[i] for i in 1:(Nx1+1), j in 1:(Nx2+1)]
+  X₂ = [x₂[j] for i in 1:(Nx1+1), j in 1:(Nx2+1)]
 
   neq, EQ = montaEQ_geral(Nx1, Nx2)
   LG = montaLG_geral(Nx1, Nx2)
@@ -174,12 +174,12 @@ function malha2D_adiciona_ruido(malha::Malha)::Malha
     ruído_limite₁, ruído_limite₂ = h₁ / noise_magnitude, h₂ / noise_magnitude
 
     # Aplica ruído uniforme aos nós internos
-    X₁[2:(end - 1),
-    2:(end - 1)] .+= ruído_limite₁ *
-                     (rand(Float64, size(X₁[2:(end - 1), 2:(end - 1)])) .- 0.5) * 2
-    X₂[2:(end - 1),
-    2:(end - 1)] .+= ruído_limite₂ *
-                     (rand(Float64, size(X₂[2:(end - 1), 2:(end - 1)])) .- 0.5) * 2
+    X₁[2:(end-1),
+    2:(end-1)] .+= ruído_limite₁ *
+                   (rand(Float64, size(X₁[2:(end-1), 2:(end-1)])) .- 0.5) * 2
+    X₂[2:(end-1),
+    2:(end-1)] .+= ruído_limite₂ *
+                   (rand(Float64, size(X₂[2:(end-1), 2:(end-1)])) .- 0.5) * 2
   end
 
   return Malha(

@@ -78,7 +78,7 @@ function single_run_2D(ruido::Bool = false)
   X₁, X₂ = malha.coords
   (; u) = run_values
   # Calcula a solução exata nos nós internos da malha
-  C_exato = u.(X₁[2:(end - 1), 2:(end - 1)], X₂[2:(end - 1), 2:(end - 1)])
+  C_exato = u.(X₁[2:(end-1), 2:(end-1)], X₂[2:(end-1), 2:(end-1)])
   C_exato = C_exato[:]
 
   K = monta_K_quadrilatero(run_values, malha)
