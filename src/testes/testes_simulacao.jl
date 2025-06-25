@@ -27,7 +27,7 @@ function single_run_1D(example)
 
   C = solve_sys_poisson(run_values, malha)
 
-  plot_solucao_aproximada(C, malha)
+  # plot_solucao_aproximada(C, malha)
 
   display("Exemplo $example - Caso 1D")
 

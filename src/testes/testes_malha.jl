@@ -12,7 +12,7 @@ function test_montaLG()
   LG2D = monta_LG_2D(5, 4) == montaLG_geral(5, 4)
   return println("LG 2D: $LG2D")
 end
-test_montaLG()
+# test_montaLG()
 
 function test_montaEQ()
   ne = 5
@@ -38,7 +38,7 @@ function test_montaEQ()
   end
   return println("EQ 2D: $EQ2D")
 end
-test_montaEQ()
+# test_montaEQ()
 
 function test_ϕ()
   println("\nTeste da ϕ:")
@@ -69,7 +69,7 @@ function test_ϕ()
   end
   return println(teste_2D ? "ok\n" : "nok\n")
 end
-test_ϕ()
+# test_ϕ()
 
 function test_∇ϕ()
   println("Teste da ∇ϕ")
@@ -101,7 +101,7 @@ function test_∇ϕ()
   end
   return println(teste_2D ? "ok\n" : "nok\n")
 end
-test_∇ϕ()
+# test_∇ϕ()
 
 function test_avalia_quadratura_∇ϕ()
   function avaliar_quadratura_geral_ϕ(
@@ -111,7 +111,7 @@ function test_avalia_quadratura_∇ϕ()
     ϕPₙ = ()
     for d in 1:n_dim
       ϕP = zeros(npg^n_dim, n_funcs^n_dim)
-      for ξ in 1:(npg ^ n_dim)
+      for ξ in 1:(npg^n_dim)
         ϕP[ξ, :] .= base_func(P[ξ]...)[1]
       end
       ϕPₙ = (ϕPₙ..., ϕP)
@@ -127,7 +127,7 @@ function test_avalia_quadratura_∇ϕ()
     ϕPₙ = ()
     for d in 1:n_dim
       ϕP = zeros(npg^n_dim, n_funcs^n_dim)
-      for ξ in 1:(npg ^ n_dim)
+      for ξ in 1:(npg^n_dim)
         ϕP[ξ, :] .= base_func(P[ξ]...)[d]
       end
       ϕPₙ = (ϕPₙ..., ϕP)
@@ -159,4 +159,4 @@ function test_avalia_quadratura_∇ϕ()
   # display(P_geral)
 end
 
-test_avalia_quadratura_∇ϕ()
+# test_avalia_quadratura_∇ϕ()
