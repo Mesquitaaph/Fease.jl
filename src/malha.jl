@@ -1,16 +1,36 @@
+
+"""
+    struct Mesh
+
+Valores que definem uma malha.
+
+# Campos
+- `base::Base`: Informações sobre o tipo da base de funções interpoladoras
+- `ne::Int64`: Número de elementos totais
+- `neq::Int64`: Número de equações
+- `coords::Tuple`: N-upla com as coordenadas (X₁, X₂, Xᵢ...) dos nós da malha
+- `dx`: n-upla contendo o intervalo entre os nós, para cada eixo (se uniforme)
+- `EQ`: Vetor com as reenumerações das funções globais ϕ
+- `LG`: Matriz de conectividade local/global (LG). Relaciona a numeração local e global das funções ϕ
+- `EQoLG::Matrix{Int64}`: Matriz composta entre a EQ e a LG
+- `a`: Coordenada do início do intervalo uniforme
+- `b`: Coordenada do final do intervalo uniforme
+- `n_dim`: Número de dimensões da malha
+- `Nx`: Número de subdivisões da malha para cada eixo
+"""
 struct Malha
-  base # Informações sobre o tipo da base de funções interpoladoras
-  ne::Int64 # Número de elementos totais
-  neq::Int64 # Número de equações
-  coords::Tuple # Tupla com as coordenadas (X₁, X₂, Xᵢ...) dos nós da malha
-  dx # n-upla contendo o intervalo entre os nós, para cada eixo (se uniforme)
-  EQ # Vetor com as reenumerações das funções globais ϕ
-  LG # Matriz de conectividade local/global (LG). Relaciona a numeração local e global das funções ϕ
-  EQoLG::Matrix{Int64} # Matriz composta entre a EQ e a LG
-  a # Coordenada do início do intervalo uniforme
-  b # Coordenada do final do intervalo uniforme
-  n_dim # Número de dimensões da malha
-  Nx # Número de subdivisões da malha para cada eixo
+  base
+  ne::Int64
+  neq::Int64
+  coords::Tuple
+  dx
+  EQ
+  LG
+  EQoLG::Matrix{Int64}
+  a
+  b
+  n_dim
+  Nx
 end
 
 function montaLG_geral(Nx1::Int64, Nx2::Int64 = 0)
