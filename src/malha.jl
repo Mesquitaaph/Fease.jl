@@ -141,7 +141,7 @@ function monta_EQ_2D(Nx1::Int64, Nx2::Int64)
   return m, EQ
 end
 
-function monta_malha_1D_uniforme(ne, base, a, b)
+function monta_malha_1D_uniforme(base, ne, a, b)
   dx = (b[1] - a[1]) / ne
   X = collect(a:dx:b)
 

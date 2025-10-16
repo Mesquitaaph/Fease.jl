@@ -60,7 +60,7 @@ Com a base definida, construímos a malha utilizando algumas funções já imple
 ```julia
 a = 0
 b = 1
-malha = monta_malha_1D_uniforme(ne, base, a, b)
+malha = monta_malha_1D_uniforme(base, ne, a, b)
 ```
 
 O próximo passo é definir os valores do problema. Para este tutorial, podemos utilizar valores de problemas exemplo do Caso 1D

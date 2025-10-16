@@ -7,7 +7,7 @@ base = monta_base(baseType, ne)
 
 a, b = 0, 1
 
-malha = monta_malha_1D_uniforme(ne, base, a, b)
+malha = monta_malha_1D_uniforme(base, ne, a, b)
 
 example = 1
 run_values = examples_1D(example)

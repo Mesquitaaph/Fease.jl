@@ -23,7 +23,7 @@ function single_run_1D(example)
   baseType = BaseTypes.linearLagrange
   base = monta_base(baseType, ne)
 
-  malha = monta_malha_1D_uniforme(ne, base, a, b)
+  malha = monta_malha_1D_uniforme(base, ne, a, b)
 
   C = solve_sys_poisson(run_values, malha)
 
@@ -106,7 +106,7 @@ function test_monta_F_1D()
   baseType = BaseTypes.linearLagrange
   base = monta_base(baseType, ne)
 
-  malha = monta_malha_1D_uniforme(ne, base, a, b)
+  malha = monta_malha_1D_uniforme(base, ne, a, b)
 
   F_1D, xPTne = montaF_1D(run_values, malha)
   F_geral = montaF_geral(run_values, malha)
@@ -175,7 +175,7 @@ function test_monta_K_1D()
   baseType = BaseTypes.linearLagrange
   base = monta_base(baseType, ne)
 
-  malha = monta_malha_1D_uniforme(ne, base, a, b)
+  malha = monta_malha_1D_uniforme(base, ne, a, b)
 
   K_1D = montaK_1D(run_values, malha)
   display(K_1D)
