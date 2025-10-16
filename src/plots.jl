@@ -1,10 +1,6 @@
 function plot_solucao_aproximada(c::Array, malha::Malha, gif::Bool = false)
   uh = monta_u_aproximada(c, malha)
 
-  return plot_solucao_aproximada(uh, malha, gif)
-end
-
-function plot_solucao_aproximada(uh::Function, malha::Malha, gif::Bool = false)
   (; a, b, n_dim) = malha
 
   X = ()
