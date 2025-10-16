@@ -42,6 +42,8 @@ export plot_malha_2D, plot_solucao_aproximada
 
 export single_run_1D, single_run_2D
 
+export erro_L2, convergence_test!
+
 using JuliaFormatter
 export format
 
