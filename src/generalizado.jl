@@ -168,7 +168,7 @@ Descrição.
 - `e::Int`: 
 
 # Retorno
-- `eqs_idx::`: 
+- `eqs_idx::`: EQoLG para o elemento `e` passado como parâmetro
 - `Xᵉ::`: 
 
 # Exemplo
@@ -183,9 +183,9 @@ function elem_coords(malha::Malha, e::Int)
   nosᵉ_idx = LG[:, e]
 
   # Coordenadas dos vértices do elemento finito Ωᵉ
-  Xᵉ = ()
+  Xᵉ = []
   for d in 1:n_dim
-    Xᵉ = (Xᵉ..., coords[d][nosᵉ_idx])
+    push!(Xᵉ, coords[d][nosᵉ_idx])
   end
 
   # Numeração de equação dos índices no vetor nosᵉ_idx
