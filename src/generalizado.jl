@@ -492,25 +492,28 @@ function monta_u_aproximada(c, malha::Malha)
   (; ne, n_dim) = malha
   d = [c..., 0]
 
-  ξₓ(x, x₀, x_f) = Tuple(2 .* (x .- x₀) ./ (x_f .- x₀) .- 1)
-
+  ξₓ(x, x₀, x_f) = 2 * (x - x₀) / (x_f - x₀) - 1
   function uh(x...)
     soma = 0
+    x₀ = Array{Float64}(undef, 0)
+    x_f = Array{Float64}(undef, 0)
+
     for e in 1:ne
       j, Xᵉ = elem_coords(malha::Malha, e::Int)
-
-      x₀ = []
-      x_f = []
       for dim in 1:n_dim
-        push!(x₀, Xᵉ[dim][1])
-        push!(x_f, Xᵉ[dim][end])
+        X = Xᵉ[dim]
+        push!(x₀, X[1])
+        push!(x_f, X[end])
       end
 
       if all((x .- x₀) .>= 0) && all((x_f .- x) .> 0)
-        ξ = ξₓ(x, x₀, x_f)
+        ξ = ξₓ.(x, x₀, x_f)
 
         soma += dot(d[j], ϕ_geral(ξ...)[1])
       end
+
+      empty!(x₀)
+      empty!(x_f)
     end
 
     return soma
