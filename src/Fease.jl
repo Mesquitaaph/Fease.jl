@@ -3,8 +3,7 @@ module Fease
 # Dependencias do modulo
 using
       BenchmarkTools, GaussQuadrature, Plots, BandedMatrices, Printf,
-      DataFrames, Latexify, Statistics, SparseArrays, LinearAlgebra, Random,
-      ProfileView
+      DataFrames, Latexify, Statistics, SparseArrays, LinearAlgebra, Random
 
 include("utils.jl")
 
