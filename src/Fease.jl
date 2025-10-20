@@ -1,4 +1,4 @@
-module MyProject
+module Fease
 
 # Dependencias do modulo
 using

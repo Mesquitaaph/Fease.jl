@@ -1,5 +1,5 @@
 ```@meta
-CurrentModule = MyProject
+CurrentModule = Fease
 ```
 
 # Nome do Projeto
@@ -9,6 +9,7 @@ Descrição breve do projeto.
 ## Introdução
 
 ## Caminho do Usuário
+
 1. Seguir o passo-a-passo em [Para Começar a Utilizar](./para-comecar/para-começar-a-utilizar.md).
 
 Por enquanto só o passo 1 basta. Abaixo são os possíveis próximos passos.
@@ -17,6 +18,7 @@ Por enquanto só o passo 1 basta. Abaixo são os possíveis próximos passos.
 3. Ler um dos [Tutoriais](./tutoriais.md).
 
 ## Caminho do Desenvolvedor
+
 1. Seguir o passo-a-passo em [Para Começar a Desenvolver](./para-comecar/para-começar-a-desenvolver.md).
 2. Ler o [Método de Elementos Finitos](./metodo-elementos-finitos.md).
 3. Ler um dos [Tutoriais](./tutoriais.md).

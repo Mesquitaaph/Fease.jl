@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - main
-    tags: ['*']
+    tags: ["*"]
   pull_request:
   workflow_dispatch:
 concurrency:
@@ -23,7 +23,7 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1.11'
+          - "1.11"
           # - 'pre'
         os:
           - ubuntu-latest
@@ -43,6 +43,6 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: Mesquitaaph/MyProject.jl
+          slug: Mesquitaaph/Fease.jl
           files: lcov.info
           fail_ci_if_error: false

@@ -35,9 +35,9 @@ jobs:
       - run: |
           julia --project=docs -e '
             using Documenter: DocMeta, doctest
-            using MyProject
-            DocMeta.setdocmeta!(MyProject, :DocTestSetup, :(using MyProject); recursive=true)
-            doctest(MyProject)'
+            using Fease
+            DocMeta.setdocmeta!(Fease, :DocTestSetup, :(using Fease); recursive=true)
+            doctest(Fease)'
       - run: julia --project=docs docs/make.jl
         env:
           JULIA_PKG_SERVER: ""

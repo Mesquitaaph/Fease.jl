@@ -31,7 +31,7 @@ Essas outras escolhas de estilo de escrita são aplicadas automaticamente pelo _
 Caso não esteja utilizando o VSCode, deve-se executar
 
 ```julia-repl
-julia> using MyProject
+julia> using Fease
 julia> format(".")
 ```
 

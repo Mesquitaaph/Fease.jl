@@ -1,6 +1,6 @@
-using Documenter, MyProject
+using Documenter, Fease
 
-DocMeta.setdocmeta!(MyProject, :DocTestSetup, :(using MyProject); recursive = true)
+DocMeta.setdocmeta!(Fease, :DocTestSetup, :(using Fease); recursive = true)
 
 const page_rename = Dict("developer.md" => "Developer docs") # Without the numbers
 
@@ -24,15 +24,15 @@ Dev_Colab = "Desenvolvimento Colaborativo" => [
 ]
 
 makedocs(;
-  modules = [MyProject],
+  modules = [Fease],
   doctest = true,
   linkcheck = false, # Rely on Lint.yml/lychee for the links
   authors = "Raphael Mesquita <raphaelfcm@ic.ufrj.br> and contributors",
-  repo = "https://github.com/Mesquitaaph/MyProject.jl/blob/{commit}{path}#{line}",
-  sitename = "MyProject.jl",
+  repo = "https://github.com/Mesquitaaph/Fease.jl/blob/{commit}{path}#{line}",
+  sitename = "Fease.jl",
   format = Documenter.HTML(;
     prettyurls = get(ENV, "CI", "false") == "true",
-    canonical = "https://Mesquitaaph.github.io/MyProject.jl",
+    canonical = "https://Mesquitaaph.github.io/Fease.jl",
     # assets = ["assets/style.css"],
   ),
   pages = [
@@ -50,7 +50,7 @@ makedocs(;
   ],
 )
 
-deploydocs(; repo = "github.com/Mesquitaaph/MyProject.jl", push_preview = false)
+deploydocs(; repo = "github.com/Mesquitaaph/Fease.jl", push_preview = false)
 
 
 # Toda vez que iniciar o REPL da Julia precisa seguir os seguintes passos:
