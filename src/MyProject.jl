@@ -3,7 +3,8 @@ module MyProject
 # Dependencias do modulo
 using
       BenchmarkTools, GaussQuadrature, Plots, BandedMatrices, Printf,
-      DataFrames, Latexify, Statistics, SparseArrays, LinearAlgebra, Random
+      DataFrames, Latexify, Statistics, SparseArrays, LinearAlgebra, Random,
+      ProfileView
 
 include("utils.jl")
 
