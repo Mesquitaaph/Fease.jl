@@ -36,7 +36,7 @@ export BaseTypes, LocalBases, monta_base
 export montaK_geral, montaF_geral, solveSys_geral, solve_sys, solve_sys_poisson,
        monta_u_aproximada
 
-export dot
+export dot, plot, plot!
 
 export plot_malha_2D, plot_solucao_aproximada
 
