@@ -74,4 +74,4 @@ Assim, é possível definir uma referência ao operador $a(u, v)$, com os termos
 
 ### Adicionando um novo termo
 
-Adicionar um novo termo vem da ideia de tornar flexível a implementação de novos problemas. Necessariamente tem que ser calculado e obtido dentro da montagem da `K local`, assim como `∇ϕᵉ_b`, por exemplo. Um exemplo pronto de como incluir um termo novo se encontra no [tutorial]
+Adicionar um novo termo vem da ideia de tornar flexível a implementação de novos problemas. Necessariamente tem que ser calculado e obtido dentro da montagem da `K local`, assim como `∇ϕᵉ_b`, por exemplo. Um exemplo pronto de como incluir um termo novo se encontra no [tutorial](../tutoriais/novo-termo.md)
