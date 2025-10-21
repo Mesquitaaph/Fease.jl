@@ -264,8 +264,7 @@ function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, pseudo_a)
           ϕᵉ_b,
           ϕᵉ_a,
           ∇ϕᵉ_b,
-          ∇ϕᵉ_a,
-          x
+          ∇ϕᵉ_a
         )
         soma = pseudo_a(termos_equacao)
 

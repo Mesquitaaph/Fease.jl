@@ -90,5 +90,4 @@ struct TermosEquacao
   v
   ∇u
   ∇v
-  x
 end
