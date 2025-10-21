@@ -23,6 +23,15 @@ Dev_Colab = "Desenvolvimento Colaborativo" => [
   "Ferramentas" => "desenvolvimento-colaborativo/ferramentas.md",
 ]
 
+Tutoriais_Desenvolvimento = "De Desenvolvimento" => [
+  "Novo termo de Equação" => "tutoriais/novo-termo.md",
+]
+
+Tutoriais = "Tutoriais" => [
+  "Tutoriais" => "tutoriais/index.md",
+  Tutoriais_Desenvolvimento
+]
+
 makedocs(;
   modules = [Fease],
   doctest = true,
@@ -39,7 +48,7 @@ makedocs(;
     "Início" => "index.md",
     Para_Comecar,
     "Método de Elementos Finitos" => "metodo-elementos-finitos.md",
-    "Tutoriais" => "tutoriais.md",
+    Tutoriais,
     Dev_Colab,
     "Referencias" => "reference.md",
     "Contatos" => "contatos.md",
