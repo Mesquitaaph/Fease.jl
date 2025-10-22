@@ -195,7 +195,7 @@ function elem_coords(malha::Malha, e::Int)
 end
 
 """
-    montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, dx, run_values::RunValues)
+    montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, pseudo_a)
 
 Descrição.
 
@@ -207,7 +207,7 @@ Descrição.
 - `Φξ::`: 
 - `∇Φξ::`: 
 - `n_dim::`: 
-- `run_values::RunValues`: 
+- `pseudo_a`: 
 
 # Retorno
 Altera `Kᵉ`.
@@ -293,7 +293,7 @@ Descrição.
 ```
 """
 function montaK_geral(malha::Malha, pseudo_a)
-  (; ne, neq, dx, n_dim, Nx, base) = malha
+  (; ne, neq, n_dim, Nx, base) = malha
 
   npg = 2
 

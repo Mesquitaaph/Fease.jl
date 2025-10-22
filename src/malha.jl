@@ -216,3 +216,93 @@ function malha2D_adiciona_ruido(malha::Malha)::Malha
     malha.Nx
   )
 end
+
+"""
+    monta_malha_2D_foco(
+    baseType, Nx1, Nx2, a::Tuple, b::Tuple, ponto_foco::Tuple, precisao::Int64)::Malha
+
+Função que constrói uma malha 2D que cria mais elementos próximos a um ponto especificado.
+
+# Parâmetros
+- `baseType::`: 
+- `Nx1::`: 
+- `Nx2::`: 
+- `a::Tuple`: 
+- `b::Tuple`: 
+- `ponto_foco::Tuple`: 
+
+# Retorno
+
+
+# Exemplo
+```@example
+
+```
+"""
+function monta_malha_2D_foco(
+    baseType, Nx1, Nx2, a::Tuple, b::Tuple, ponto_foco::Tuple, precisao = 1)::Malha
+
+  # Define o comprimento da base (h₁) e altura (h₂) de cada elemento retangular Ωᵉ
+  h₁, h₂ = (b[1] - a[1]) / Nx1, (b[2] - a[2]) / Nx2
+  h = (; h₁, h₂)
+
+  # Define a discretização em x₁ e x₂
+  x₁ = collect(a[1]:h₁:b[1])
+  x₂ = collect(a[2]:h₂:b[2])
+
+  (p₁, p₂) = ponto_foco
+
+  # Encontra nó central para ambos eixos
+  idx₁ = findfirst(x -> x == p₁, x₁)
+  idx₂ = findfirst(x -> x == p₂, x₂)
+
+  # Se não existir nó central, em algum dois eixos, cria-o
+  if idx₁ == nothing
+    idx₁ = findfirst(x -> x > p₁, x₁)
+    insert!(x₁, idx₁, p₁)
+    Nx1 += 1
+  end
+  if idx₂ == nothing
+    idx₂ = findfirst(x -> x > p₂, x₂)
+    insert!(x₂, idx₂, p₂)
+    Nx2 += 1
+  end
+
+  # Para cada eixo, adiciona um nó antes e depois do nó central.
+  # Esses novos nós se encontram na média entre o nó central e seus vizinhos.
+  for i in 1:precisao
+    # Encontra as médias entre nó central e vizinhos
+    prev₁ = (x₁[idx₁-1] + x₁[idx₁]) / 2
+    next₁ = (x₁[idx₁+1] + x₁[idx₁]) / 2
+
+    # Insere nós entre vizinhos e central
+    insert!(x₁, idx₁, prev₁)
+    idx₁ += 1 # Ajusta valor do indice do nó central
+    insert!(x₁, idx₁ + 1, next₁)
+    Nx1 += 2 # Ajusta valor da quantidade de intervalos no eixo x₁
+
+    # Análogo ao trecho acima
+    prev₂ = (x₂[idx₂-1] + x₂[idx₂]) / 2
+    next₂ = (x₂[idx₂+1] + x₂[idx₂]) / 2
+    insert!(x₂, idx₂, prev₂)
+    idx₂ += 1
+    insert!(x₂, idx₂ + 1, next₂)
+    Nx2 += 2
+  end
+
+  # Define as coordenadas de cada nó da malha
+  X₁ = [x₁[i] for i in 1:(Nx1+1), j in 1:(Nx2+1)]
+  X₂ = [x₂[j] for i in 1:(Nx1+1), j in 1:(Nx2+1)]
+
+  neq, EQ = montaEQ_geral(Nx1, Nx2)
+  LG = montaLG_geral(Nx1, Nx2)
+  EQoLG = EQ[LG]
+
+  coords = (X₁, X₂)
+  n_dim = 2
+  Nx = (; Nx1, Nx2)
+
+  ne = Nx1 * Nx2
+  base = monta_base(baseType, ne)
+  return Malha(base, ne, neq, coords, h, EQ, LG, EQoLG, a, b, n_dim, Nx)
+end
