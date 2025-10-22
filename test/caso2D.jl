@@ -5,11 +5,10 @@ function single_run_2D(ruido::Bool = false)
   ne = Nx1 * Nx2
 
   baseType = BaseTypes.linearLagrange
-  base = monta_base(baseType, ne)
 
   a = (0.0, 0.0)
   b = (1.0, 1.0)
-  malha = monta_malha_2D_uniforme(base, Nx1, Nx2, a, b)
+  malha = monta_malha_2D_uniforme(baseType, Nx1, Nx2, a, b)
 
   if ruido
     # Exemplo 2: Adiciona ruído nos nós internos

@@ -5,9 +5,8 @@ function single_run_1D(example)
   a, b = 0, 1
 
   baseType = BaseTypes.linearLagrange
-  base = monta_base(baseType, ne)
 
-  malha = monta_malha_1D_uniforme(base, ne, a, b)
+  malha = monta_malha_1D_uniforme(baseType, ne, a, b)
 
   C = solve_sys_poisson(run_values, malha)
 

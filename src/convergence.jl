@@ -45,7 +45,7 @@ function erro_L2(malha::Malha, u, C)
   return EL2, EH01
 end
 
-function convergence_test!(E, NE, run_values, baseType, a, b, n_dims)
+function convergence_test!(E, NE, run_values, n_dims, monta_malha)
   fill!(E, 0.0)
   dE = similar(E)
   (; u) = run_values
@@ -59,15 +59,7 @@ function convergence_test!(E, NE, run_values, baseType, a, b, n_dims)
       ne *= e
     end
 
-    base = monta_base(baseType, ne)
-
-    malha = Nothing
-
-    if n_dims == 1
-      malha = monta_malha_1D_uniforme(base, NX[1], a, b)
-    elseif n_dims == 2
-      malha = monta_malha_2D_uniforme(base, NX..., a, b)
-    end
+    malha = monta_malha(NX)
 
     C = solve_sys_poisson(run_values, malha)
 

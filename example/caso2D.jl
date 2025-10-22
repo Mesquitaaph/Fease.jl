@@ -4,11 +4,10 @@ Nx1, Nx2 = 4, 3
 ne = Nx1 * Nx2
 
 baseType = BaseTypes.linearLagrange
-base = monta_base(baseType, ne)
 
 a = (0.0, 0.0)
 b = (1.0, 1.0)
-malha = monta_malha_2D_uniforme(base, Nx1, Nx2, a, b)
+malha = monta_malha_2D_uniforme(baseType, Nx1, Nx2, a, b)
 
 example = 1
 run_values = examples_2D(example)
@@ -31,6 +30,10 @@ function convergence_2D()
   a = (0.0, 0.0)
   b = (1.0, 1.0)
 
+  function monta_malha(NX)
+    return monta_malha_2D_uniforme(baseType, NX..., a, b)
+  end
+
   example = 1
   run_values = examples_2D(example)
 
@@ -40,7 +43,7 @@ function convergence_2D()
   E = zeros(length(NE))
   dE = similar(E)
 
-  convergence_test!(E, NE, run_values, baseType, a, b, 2)
+  convergence_test!(E, NE, run_values, 2, monta_malha)
 
   H = 1 ./ NE
   plot(H, E, xaxis = :log10, yaxis = :log10)

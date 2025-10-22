@@ -3,11 +3,10 @@ using Fease
 ne = 2^3
 
 baseType = BaseTypes.linearLagrange
-base = monta_base(baseType, ne)
 
 a, b = 0, 1
 
-malha = monta_malha_1D_uniforme(base, ne, a, b)
+malha = monta_malha_1D_uniforme(baseType, ne, a, b)
 
 example = 1
 run_values = examples_1D(example)
@@ -29,6 +28,10 @@ function convergence_1D()
 
   a, b = 0, 1
 
+  function monta_malha(NX)
+    return monta_malha_1D_uniforme(baseType, NX[1], a, b)
+  end
+
   example = 1
   run_values = examples_1D(example)
 
@@ -37,7 +40,7 @@ function convergence_1D()
   H = 1 ./ NE
   E = zeros(length(NE))
   dE = similar(E)
-  convergence_test!(E, NE, run_values, baseType, a, b, 1)
+  convergence_test!(E, NE, run_values, 1, monta_malha)
 
   H = 1 ./ NE
   plot(H, E, xaxis = :log10, yaxis = :log10)

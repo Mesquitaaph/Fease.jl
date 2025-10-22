@@ -21,9 +21,8 @@ function single_run_1D(example)
   a, b = 0, 1
 
   baseType = BaseTypes.linearLagrange
-  base = monta_base(baseType, ne)
 
-  malha = monta_malha_1D_uniforme(base, ne, a, b)
+  malha = monta_malha_1D_uniforme(baseType, ne, a, b)
 
   C = solve_sys_poisson(run_values, malha)
 
@@ -43,11 +42,10 @@ function single_run_2D(ruido::Bool = false)
   ne = Nx1 * Nx2
 
   baseType = BaseTypes.linearLagrange
-  base = monta_base(baseType, ne)
 
   a = (0.0, 0.0)
   b = (1.0, 1.0)
-  malha = monta_malha_2D_uniforme(base, Nx1, Nx2, a, b)
+  malha = monta_malha_2D_uniforme(baseType, Nx1, Nx2, a, b)
 
   correct_result_ex1 = [0.659197679603509
                         0.9322462987801567
@@ -104,9 +102,8 @@ function test_monta_F_1D()
   run_values = RunValues(alpha, beta, gamma, f, u)
 
   baseType = BaseTypes.linearLagrange
-  base = monta_base(baseType, ne)
 
-  malha = monta_malha_1D_uniforme(base, ne, a, b)
+  malha = monta_malha_1D_uniforme(baseType, ne, a, b)
 
   F_1D, xPTne = montaF_1D(run_values, malha)
   F_geral = montaF_geral(run_values, malha)
@@ -125,11 +122,10 @@ function test_monta_F_2D()
   Nx1, Nx2 = 4, 3
 
   baseType = BaseTypes.linearLagrange
-  base = monta_base(baseType, Nx1 * Nx2)
 
   a = (0.0, 0.0)
   b = (1.0, 1.0)
-  malha = monta_malha_2D_uniforme(base, Nx1, Nx2, a, b)
+  malha = monta_malha_2D_uniforme(baseType, Nx1, Nx2, a, b)
 
   display("Exemplo 1: Malha uniforme de retângulos")
   F_2D = monta_F_quadrilatero(run_values, malha)
@@ -173,9 +169,8 @@ function test_monta_K_1D()
   run_values = RunValues(alpha, beta, gamma, f, u)
 
   baseType = BaseTypes.linearLagrange
-  base = monta_base(baseType, ne)
 
-  malha = monta_malha_1D_uniforme(base, ne, a, b)
+  malha = monta_malha_1D_uniforme(baseType, ne, a, b)
 
   K_1D = montaK_1D(run_values, malha)
   display(K_1D)
@@ -195,11 +190,10 @@ function test_monta_K_2D()
   Nx1, Nx2 = 4, 3
 
   baseType = BaseTypes.linearLagrange
-  base = monta_base(baseType, Nx1 * Nx2)
 
   a = (0.0, 0.0)
   b = (1.0, 1.0)
-  malha = monta_malha_2D_uniforme(base, Nx1, Nx2, a, b)
+  malha = monta_malha_2D_uniforme(baseType, Nx1, Nx2, a, b)
 
   # display("Exemplo 1: Malha uniforme de retângulos")
   # # display("monta_K_quadrilatero")
