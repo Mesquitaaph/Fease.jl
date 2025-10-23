@@ -27,7 +27,8 @@ include("testes/include_testes.jl")
 
 export format_num, measure_func, test_revise
 
-export Malha, monta_malha_1D_uniforme, monta_malha_2D_uniforme, malha2D_adiciona_ruido
+export Malha, monta_malha_1D_uniforme, monta_malha_2D_uniforme, malha2D_adiciona_ruido,
+       monta_malha_2D_foco
 
 export examples_1D, examples_2D, RunValues, TermosEquacao
 
