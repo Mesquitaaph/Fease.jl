@@ -1,6 +1,6 @@
 using Fease
 
-Nx1, Nx2 = 4, 3
+Nx1, Nx2 = 4, 4
 ne = Nx1 * Nx2
 
 baseType = BaseTypes.linearLagrange
@@ -9,12 +9,12 @@ a = (0.0, 0.0)
 b = (1.0, 1.0)
 malha = monta_malha_2D_uniforme(baseType, Nx1, Nx2, a, b)
 
-example = 1
-run_values = examples_2D(example)
+alpha = 1.0
+beta = 1.0
+f = (x₁, x₂) -> (2 * alpha * π^2 + beta) * sin(π * x₁) * sin(π * x₂)
+u = (x₁, x₂) -> sin(π * x₁) * sin(π * x₂)
 
-(; α, β, f) = run_values
-
-function pseudo_a(termos_equacao)
+function ref_op_a(termos_equacao)
   (; ∇u, ∇v, u, v) = termos_equacao
 
   return β * dot(u, v) + α * dot(∇u, ∇v)
@@ -23,6 +23,8 @@ end
 C = solve_sys(f, malha, pseudo_a)
 
 display(C)
+
+plot_solucao_aproximada(C, malha, false)
 
 function convergence_2D()
   baseType = BaseTypes.linearLagrange
@@ -50,4 +52,4 @@ function convergence_2D()
   return plot!(H, H .^ monta_base(baseType, 2).nB, xaxis = :log10, yaxis = :log10)
 end
 
-convergence_2D()
+# convergence_2D()

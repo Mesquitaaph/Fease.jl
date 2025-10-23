@@ -23,12 +23,17 @@ Dev_Colab = "Desenvolvimento Colaborativo" => [
   "Ferramentas" => "desenvolvimento-colaborativo/ferramentas.md",
 ]
 
+Tutoriais_Uso = "De Uso" => [
+  "Equação de Poisson 2D" => "tutoriais/poisson-2d.md",
+]
+
 Tutoriais_Desenvolvimento = "De Desenvolvimento" => [
   "Novo termo de Equação" => "tutoriais/novo-termo.md",
 ]
 
 Tutoriais = "Tutoriais" => [
-  "Tutoriais" => "tutoriais/index.md",
+  "Introdução" => "tutoriais/index.md",
+  Tutoriais_Uso,
   Tutoriais_Desenvolvimento
 ]
 
