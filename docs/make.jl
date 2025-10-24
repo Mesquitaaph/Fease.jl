@@ -26,7 +26,7 @@ Dev_Colab = "Desenvolvimento Colaborativo" => [
 Tutoriais_Uso = "De Uso" => [
   "Equação de Poisson 2D" => "tutoriais/poisson-2d.md",
   "Outras Malhas" => "tutoriais/outras-malhas.md",
-  # "Estudo de Convergência do Erro" => "tutoriais/convergencia.md"
+  "Estudo de Convergência do Erro" => "tutoriais/convergencia.md"
 ]
 
 Tutoriais_Desenvolvimento = "De Desenvolvimento" => [
