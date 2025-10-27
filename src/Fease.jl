@@ -15,8 +15,8 @@ include("examples.jl")
 
 include("phis.jl")
 
-include("serial.jl")
-include("FEM2D.jl")
+# include("serial.jl")
+# include("FEM2D.jl")
 include("generalizado.jl")
 
 include("convergence.jl")
@@ -40,8 +40,6 @@ export montaK_geral, montaF_geral, solveSys_geral, solve_sys, solve_sys_poisson,
 export dot, plot, plot!
 
 export plot_malha_2D, plot_solucao_aproximada
-
-export single_run_1D, single_run_2D
 
 export erro_L2, convergence_test!
 
