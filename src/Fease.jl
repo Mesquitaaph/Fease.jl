@@ -3,27 +3,8 @@ module Fease
 # Dependencias do modulo
 using
       BenchmarkTools, GaussQuadrature, Plots, BandedMatrices, Printf,
-      DataFrames, Latexify, Statistics, SparseArrays, LinearAlgebra, Random
-
-include("utils.jl")
-
-include("bases.jl")
-
-include("malha.jl")
-
-include("examples.jl")
-
-include("phis.jl")
-
-# include("serial.jl")
-# include("FEM2D.jl")
-include("generalizado.jl")
-
-include("convergence.jl")
-
-include("plots.jl")
-
-include("testes/include_testes.jl")
+      DataFrames, Latexify, Statistics, SparseArrays, LinearAlgebra, Random,
+      JuliaFormatter
 
 export format_num, measure_func, test_revise
 
@@ -43,7 +24,24 @@ export plot_malha_2D, plot_solucao_aproximada
 
 export erro_L2, convergence_test!
 
-using JuliaFormatter
 export format
+
+include("utils.jl")
+
+include("bases.jl")
+
+include("malha.jl")
+
+include("examples.jl")
+
+include("phis.jl")
+
+include("generalizado.jl")
+
+include("convergence.jl")
+
+include("plots.jl")
+
+include("testes/include_testes.jl")
 
 end

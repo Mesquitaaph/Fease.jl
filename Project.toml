@@ -1,5 +1,5 @@
 name = "Fease"
-uuid = "4586730f-1f0f-423d-83b4-4d2aed56638e"
+uuid = "8e4d052f-3f8a-42f1-8d18-6d26d7da8dfc"
 authors = ["mesquitaaph <raphafm.rf@gmail.com> and contributors"]
 version = "1.0.0-DEV"
 
@@ -18,20 +18,18 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
-BandedMatrices = "1.9.3"
-BenchmarkTools = "1.6.0"
-DataFrames = "1.7.0"
+BandedMatrices = "1.10.1"
+BenchmarkTools = "1.6.3"
+DataFrames = "1.8.1"
 GaussQuadrature = "0.5.8"
-JuliaFormatter = "1.0.62"
-Latexify = "0.16.6"
-LinearAlgebra = "1.11.0"
-Plots = "1.40.11"
+JuliaFormatter = "2.1.6"
+Latexify = "0.16.10"
+LinearAlgebra = "1.12.0"
+Plots = "1.41.1"
 Printf = "1.11.0"
 Random = "1.11.0"
-SparseArrays = "1.11.0"
+SparseArrays = "1.12.0"
 Statistics = "1.11.1"
-julia = "1.12.1"
-
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
