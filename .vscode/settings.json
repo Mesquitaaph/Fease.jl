@@ -4,6 +4,7 @@
   "julia.lint.disabledDirs": [
     "example",
     "docs",
-    "test"
+    "test",
+    "nao-generalizados"
   ]
 }

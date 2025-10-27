@@ -1,3 +1,5 @@
+using Fease
+
 function x₁_de_ξ(ξ₁::Float64, h₁::Float64, p₁::Float64)::Float64
   x₁ = p₁ + (h₁ / 2) * (ξ₁ + 1)
   return x₁

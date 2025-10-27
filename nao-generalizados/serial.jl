@@ -1,3 +1,5 @@
+using Fease
+
 function avaliar_quadratura(base_func::Function, npg::Int64, n_funcs::Int64, n_dim::Int64)
   P, W = legendre(npg)
 
