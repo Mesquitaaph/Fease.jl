@@ -1,3 +1,24 @@
+"""
+    jacobian(n_dim::Int, Xᵉ::Vector, ∇Φξ::Tuple{Matrix{Float64}}, ξ::Int)
+
+Calcula a matriz jacobiana, assim como seu determinante, 
+no domínio do elemento determinado pelas coordenadas em `Xᵉ`.
+
+# Parâmetros
+- `n_dim::Int`: Número de dimensões do espaço.
+- `Xᵉ::Vector`: Coordenadas dos vértices do elemento finito Ωᵉ. Cada entrada do vetor representa um eixo.
+- `∇Φξ::Tuple{Matrix{Float64}}`: N-upla de matrizes `npg x n_funcs` com a avaliaçao das `∂ϕ` nos pontos de Gauss-Legendre.
+- `ξ::Int`: Representa o número do ponto de Gauss.
+
+# Retorno
+- `M::Matrix{Float64}`: Matriz jacobiana.
+- `detJ::Float64`: O determinante da matriz jacobiana
+
+# Exemplo
+```@example
+
+```
+"""
 function jacobiano(n_dim, Xᵉ, ∇Φξ, ξ)
   # Monta a matriz jacobiana
   M = Matrix{Float64}(undef, n_dim, n_dim)
@@ -131,17 +152,17 @@ function quadratura_∇ϕ(base, npg::Int, n_dim::Int) # Acho que esse base posso
 end
 
 """
-    mudanca_variavel_xξ(Xᵉ, Φξ, n_dim)
+    mudanca_variavel_xξ(Xᵉ::Vector, Φξ::Vector, n_dim::Int)
 
-Descrição.
+Mapeia as coordenadas físicas x = (x₁, x₂, xᵢ...) a partir de ξ = (ξ₁, ξ₂, ξᵢ...)
 
 # Parâmetros
-- `Xᵉ::`: 
-- `Φξ::`: 
+- `Xᵉ::Vector`: Coordenadas dos vértices do elemento finito Ωᵉ. Cada entrada do vetor representa um eixo.
+- `Φξ::Vector`: Vetor com o valor das funções locais Φ avaliadas no ponto de Gauss ξ = (ξ₁, ξ₂, ξᵢ...).
 - `n_dim::Int`: Número de dimensões do espaço.
 
 # Retorno
-- `x::`: 
+- `x::Vector`: A coordenada física referente ao ponto de Gauss ξ.
 
 # Exemplo
 ```@example
@@ -161,15 +182,15 @@ end
 """
     elem_coords(malha::Malha, e::Int)
 
-Descrição.
+Encontra as coordenadas dos nós do elemento finito `e` e os retorna, junto a EQoLG referente.
 
 # Parâmetros
-- `malha::Malha`: 
-- `e::Int`: 
+- `malha::Malha`: A malha sob a qual está sendo solucionado o problema.
+- `e::Int`: O identificador numérico do elemento finito Ωᵉ.
 
 # Retorno
 - `eqs_idx::`: EQoLG para o elemento `e` passado como parâmetro
-- `Xᵉ::`: 
+- `Xᵉ::Vector`: Coordenadas dos vértices do elemento finito Ωᵉ. Cada entrada do vetor representa um eixo.
 
 # Exemplo
 ```@example
@@ -197,17 +218,17 @@ end
 """
     montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, pseudo_a)
 
-Descrição.
+Monta a matriz local `Kᵉ` referente à contribuição do elemento `e`.
 
 # Parâmetros
-- `Kᵉ::`: 
-- `Xᵉ::`: 
-- `P::`: 
-- `W::`: 
-- `Φξ::`: 
-- `∇Φξ::`: 
-- `n_dim::`: 
-- `pseudo_a`: 
+- `Kᵉ::Matrix{Float64}`: Matriz local `Kᵉ` referente à contribuição do elemento `e`.
+- `Xᵉ::Vector`: Coordenadas dos vértices do elemento finito Ωᵉ. Cada entrada do vetor representa um eixo.
+- `P::Vector{Tuple}`: Vetor de n-uplas, onde cada n-upla é um ponto de Gauss-Legendre dimensionado por `n_dim`.
+- `W::Vector{Tuple}`: Vetor de n-uplas, onde cada n-upla é um conjunto ordenado de pesos de Gauss-Legendre associados a cada um dos pontos em `P`.
+- `Φξ::Matrix{Float64}`: Matriz `npg x n_funcs` com a avaliaçao das `ϕ` nos pontos de Gauss-Legendre.
+- `∇Φξ::Tuple{Matrix{Float64}}`: N-upla de matrizes `npg x n_funcs` com a avaliaçao das `∂ϕ` nos pontos de Gauss-Legendre.
+- `n_dim::Int`: Número de dimensões do espaço.
+- `pseudo_a`: A referência ao operador bilinear a(u,v).
 
 # Retorno
 Altera `Kᵉ`.
@@ -276,16 +297,16 @@ function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, pseudo_a)
 end
 
 """
-    montaK_geral(run_values::RunValues, malha::Malha)
+    montaK_geral(malha::Malha, pseudo_a)
 
-Descrição.
+Monta a matriz `K` global do sistema linear do problema.
 
 # Parâmetros
-- `run_values::RunValues`:
-- `malha::Malha`:
+- `malha::Malha`: A malha sob a qual está sendo solucionado o problema.
+- `pseudo_a::`: A referência ao operador bilinear a(u,v).
 
 # Retorno
-- `K::Matrix{Float64}`:
+- `K::Matrix{Float64}`: A matriz `K` global do sistema linear do problema.
 
 # Exemplo
 ```@example
@@ -333,17 +354,17 @@ end
 """
     montaFᵉ_geral!(Fᵉ, f, Xᵉ, P, W, ϕξ, ∇ϕξ, n_dim)
 
-Descrição.
+Monta o vetor local `Fᵉ` referente à contribuição do elemento `e`.
 
 # Parâmetros
-- `Fᵉ::`: 
-- `f::`: 
-- `Xᵉ::`: 
-- `P::`: 
-- `W::`: 
-- `ϕξ::`: 
-- `∇ϕξ::`: 
-- `n_dim::`: 
+- `Fᵉ::Vector{Float64}`: Vetor local `Fᵉ` referente à contribuição do elemento `e`.
+- `f::function`: Funçãp que represnenta o lado direito da equação do problema.
+- `Xᵉ::Vector`: Coordenadas dos vértices do elemento finito Ωᵉ. Cada entrada do vetor representa um eixo.
+- `P::Vector{Tuple}`: Vetor de n-uplas, onde cada n-upla é um ponto de Gauss-Legendre dimensionado por `n_dim`.
+- `W::Vector{Tuple}`: Vetor de n-uplas, onde cada n-upla é um conjunto ordenado de pesos de Gauss-Legendre associados a cada um dos pontos em `P`.
+- `ϕξ::Matrix{Float64}`: Matriz `npg x n_funcs` com a avaliaçao das `ϕ` nos pontos de Gauss-Legendre.
+- `∇ϕξ::Tuple{Matrix{Float64}}`: N-upla de matrizes `npg x n_funcs` com a avaliaçao das `∂ϕ` nos pontos de Gauss-Legendre.
+- `n_dim::Int`: Número de dimensões do espaço.
 
 # Retorno
 Altera `Fᵉ`.
@@ -381,16 +402,16 @@ function montaFᵉ_geral!(Fᵉ, f, Xᵉ, P, W, ϕξ, ∇ϕξ, n_dim)
 end
 
 """
-    montaF_geral(run_values::RunValues, malha::Malha)
+    montaF_geral(f::Function, malha::Malha)
 
-Descrição.
+Monta o vetor `F` global do sistema linear do problema.
 
 # Parâmetros
-- `run_values::RunValues`:
-- `malha::Malha`:
+- `f::function`: Funçãp que represnenta o lado direito da equação do problema.
+- `malha::Malha`: A malha sob a qual está sendo solucionado o problema.
 
 # Retorno
-- `F::Vector{Float64}`:
+- `F::Vector{Float64}`: O vetor `F` global do sistema linear do problema.
 
 # Exemplo
 ```@example
@@ -458,6 +479,24 @@ function solve_sys_poisson(run_values::RunValues, malha::Malha)
   return C
 end
 
+"""
+    solve_sys(f::function, malha::Malha, pseudo_a::function)
+
+Monta e soluciona o sistema linear KC = F, 
+considerando a referência ao operador bilinear a(u,v) obtido na formulação fraca.
+
+# Parâmetros
+- `run_values::RunValues`: Estrutura que contém parâmetros do problema.
+- `malha::Malha`: A malha sob a qual está sendo solucionado o problema.
+
+# Retorno
+- `C::Vector{Float64}`: O vetor contendo a solução do sistema linear.
+
+# Exemplo
+```@example
+
+```
+"""
 function solve_sys(f, malha, pseudo_a)
   K = montaK_geral(malha, pseudo_a)
 
@@ -470,6 +509,24 @@ function solve_sys(f, malha, pseudo_a)
   return C
 end
 
+"""
+    monta_u_aproximada(c::Vector{Float64}, malha::Malha)
+
+Dada a solução obtida através do sistema linear e a malha sob a qual foi solucionada,
+retorna uma função que aproxima a solução analítica do problema.
+
+# Parâmetros
+- `c::Vector{Float64}`: O vetor contendo a solução do sistema linear.
+- `malha::Malha`: A malha sob a qual está sendo solucionado o problema.
+
+# Retorno
+- `uh::function`: Uma função que aproxima a solução analítica do problema.
+
+# Exemplo
+```@example
+
+```
+"""
 function monta_u_aproximada(c, malha::Malha)
   (; ne, n_dim) = malha
   d = [c..., 0]
