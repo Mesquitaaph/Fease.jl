@@ -34,7 +34,7 @@ export examples_1D, examples_2D, RunValues, TermosEquacao
 
 export BaseTypes, LocalBases, monta_base
 
-export montaK_geral, montaF_geral, solveSys_geral, solve_sys, solve_sys_poisson,
+export montaK_geral, montaF_geral, solve_sys, solve_sys_poisson,
        monta_u_aproximada
 
 export dot, plot, plot!

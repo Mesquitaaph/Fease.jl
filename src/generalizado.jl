@@ -428,40 +428,22 @@ function montaF_geral(f::Function, malha::Malha)
 end
 
 """
-    solveSys_geral(run_values::RunValues, malha::Malha)
+    solve_sys_poisson(run_values::RunValues, malha::Malha)
 
-Monta e soluciona o sistema linear KC = F.
+Monta e soluciona o sistema linear KC = F, considerando o problema com equação de Poisson.
 
 # Parâmetros
-- `run_values::RunValues`:
-- `malha::Malha`:
+- `run_values::RunValues`: Estrutura que contém parâmetros do problema.
+- `malha::Malha`: A malha sob a qual está sendo solucionado o problema.
 
 # Retorno
-- `C::Vector{Float64}`:
+- `C::Vector{Float64}`: O vetor contendo a solução do sistema linear.
 
 # Exemplo
 ```@example
 
 ```
 """
-function solveSys_geral(run_values::RunValues, malha::Malha)
-  (; α, β, f) = run_values
-
-  _a = [1, 2]
-  # α(x) = 2 * x
-
-  function pseudo_a(termos_equacao::TermosEquacao)
-    (; ∇u, ∇v, u, v, x) = termos_equacao
-
-    # return β * dot(u, v) + dot(dot(_a, ∇u), v) + dot(α(x), ∇v)
-    return β * dot(u, v) + α * dot(∇u, ∇v)
-  end
-
-  C = solve_sys(f, malha, pseudo_a)
-
-  return C
-end
-
 function solve_sys_poisson(run_values::RunValues, malha::Malha)
   (; α, β, f) = run_values
 
