@@ -407,7 +407,7 @@ end
 Monta o vetor `F` global do sistema linear do problema.
 
 # Parâmetros
-- `f::function`: Funçãp que represnenta o lado direito da equação do problema.
+- `f::function`: Função que represnenta o lado direito da equação do problema.
 - `malha::Malha`: A malha sob a qual está sendo solucionado o problema.
 
 # Retorno

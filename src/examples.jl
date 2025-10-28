@@ -77,6 +77,18 @@ function examples_2D(case)
   end
 end
 
+"""
+    struct RunValues
+
+Valores que definem parâmetros de um problema.
+
+# Campos
+- `α::Float64`: Coeficiente α
+- `β::Float64`: Coeficiente β
+- `γ::Float64`: Coeficiente γ
+- `f::Function`: Função que represnenta o lado direito da equação do problema.
+- `u::Function`: Função que representa a solução analítica da equação do problema.
+"""
 struct RunValues
   α::Float64
   β::Float64
@@ -85,6 +97,18 @@ struct RunValues
   u::Function
 end
 
+"""
+    struct EquationTerms
+
+Referências a termos da equação.
+
+# Campos
+- `u::`: Representa um dos pares do operador linear a(u,v).
+- `v::`: Representa um dos pares do operador linear a(u,v).
+- `∇u::`: Representa o gradiente de um dos pares do operador linear a(u,v).
+- `∇v::`: Representa o gradiente de um dos pares do operador linear a(u,v).
+- `x::`: Termo que permite representar um termo qualquer da equação que dependa de valores no domínio.
+"""
 struct TermosEquacao
   u
   v
