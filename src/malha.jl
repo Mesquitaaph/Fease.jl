@@ -9,14 +9,14 @@ Valores que definem uma malha.
 - `ne::Int64`: Número de elementos totais
 - `neq::Int64`: Número de equações
 - `coords::Tuple`: N-upla com as coordenadas (X₁, X₂, Xᵢ...) dos nós da malha
-- `dx`: n-upla contendo o intervalo entre os nós, para cada eixo (se uniforme)
-- `EQ`: Vetor com as reenumerações das funções globais ϕ
-- `LG`: Matriz de conectividade local/global (LG). Relaciona a numeração local e global das funções ϕ
+- `dx::`: n-upla contendo o intervalo entre os nós, para cada eixo (se uniforme)
+- `EQ::Vector{Int64}`: Vetor com as reenumerações das funções globais ϕ
+- `LG::Matrix{Int64}`: Matriz de conectividade local/global (LG). Relaciona a numeração local e global das funções ϕ
 - `EQoLG::Matrix{Int64}`: Matriz composta entre a EQ e a LG
-- `a`: Coordenada do início do intervalo uniforme
-- `b`: Coordenada do final do intervalo uniforme
-- `n_dim`: Número de dimensões da malha
-- `Nx`: Número de subdivisões da malha para cada eixo
+- `a::Tuple`: Coordenada do início do intervalo
+- `b::Tuple`: Coordenada do final do intervalo
+- `n_dim::Int64`: Número de dimensões da malha
+- `Nx::Tuple`: Número de subdivisões da malha para cada eixo
 """
 struct Malha
   base
@@ -24,15 +24,32 @@ struct Malha
   neq::Int64
   coords::Tuple
   dx
-  EQ
-  LG
+  EQ::Vector{Int64}
+  LG::Matrix{Int64}
   EQoLG::Matrix{Int64}
   a
   b
-  n_dim
+  n_dim::Int64
   Nx
 end
 
+"""
+    montaLG_geral(Nx1::Int64, Nx2::Int64 = 0)
+
+Função que monta a matriz de conectividade local/global (LG). Relaciona a numeração local e global das funções ϕ.
+
+# Parâmetros
+- `Nx1::Int64`: Número de subdivisões da malha no primeiro eixo.
+- `Nx2::Int64 = 0`: Número de subdivisões da malha no segundo eixo.
+
+# Retorno
+- `LG::Matrix{Int64}`: Matriz de conectividade local/global (LG). Relaciona a numeração local e global das funções ϕ.
+
+# Exemplo
+```@example
+
+```
+"""
 function montaLG_geral(Nx1::Int64, Nx2::Int64 = 0)
   n_dim = 1 + (Nx2 == 0 ? 0 : 1)
   ne = Nx1 * (Nx2 == 0 ? 1 : Nx2)
@@ -55,20 +72,23 @@ function montaLG_geral(Nx1::Int64, Nx2::Int64 = 0)
   return LG
 end
 
-function montaLG(ne, base)
-  LG = zeros(Int64, ne, base.nB)
+"""
+    monta_LG_2D(Nx1::Int64, Nx2::Int64)::Matrix{Int64}
 
-  LG1 = [(base.nB - 1) * i - (base.nB - 2) for i in 1:ne]
+Função que monta a matriz de conectividade local/global (LG). Relaciona a numeração local e global das funções ϕ.
 
-  for e in 1:ne
-    for a in 1:(base.nB)
-      @inbounds LG[e, a] = LG1[e] + (a - 1)
-    end
-  end
+# Parâmetros
+- `Nx1::Int64`: Número de subdivisões da malha no primeiro eixo.
+- `Nx2::Int64`: Número de subdivisões da malha no segundo eixo.
 
-  return LG'
-end
+# Retorno
+- `LG::Matrix{Int64}`: Matriz de conectividade local/global (LG). Relaciona a numeração local e global das funções ϕ.
 
+# Exemplo
+```@example
+
+```
+"""
 function monta_LG_2D(Nx1::Int64, Nx2::Int64)::Matrix{Int64}
   # Define o número de funções φ no eixo x₁ e x₂
   nx1 = Nx1 + 1
@@ -86,6 +106,23 @@ function monta_LG_2D(Nx1::Int64, Nx2::Int64)::Matrix{Int64}
   return LG
 end
 
+"""
+    montaEQ_geral(Nx1::Int64, Nx2::Int64 = 0)
+
+Função que monta o vetor com as reenumerações das funções globais ϕ.
+
+# Parâmetros
+- `Nx1::Int64`: Número de subdivisões da malha no primeiro eixo.
+- `Nx2::Int64 = 0`: Número de subdivisões da malha no segundo eixo.
+
+# Retorno
+- `EQ::Vector{Int64}`: Vetor com as reenumerações das funções globais ϕ.
+
+# Exemplo
+```@example
+
+```
+"""
 function montaEQ_geral(Nx1::Int64, Nx2::Int64 = 0)
   n_dim = 1 + (Nx2 == 0 ? 0 : 1)
   ne = Nx1 * (Nx2 == 0 ? 1 : Nx2)
@@ -108,39 +145,25 @@ function montaEQ_geral(Nx1::Int64, Nx2::Int64 = 0)
   return neq, EQ
 end
 
-function montaEQ(ne, neq, base)
-  EQ = zeros(Int64, (base.nB - 1) * ne + 1)
+"""
+    monta_malha_1D_uniforme(baseType, Nx1, a, b)::Malha
 
-  EQ[1] = neq + 1
-  EQ[end] = neq + 1
+Função que constrói uma malha 1D uniforme.
 
-  for i in 2:((base.nB-1)*ne)
-    @inbounds EQ[i] = i - 1
-  end
+# Parâmetros
+- `baseType::`: O tipo da base das funções interpoladoras.
+- `Nx1::Int64`: Número de subdivisões da malha no primeiro eixo.
+- `a::Tuple`: Coordenada do início do intervalo uniforme.
+- `b::Tuple`: Coordenada do final do intervalo uniforme.
 
-  return EQ
-end
+# Retorno
+- `malha::Malha`: Uma malha 1D uniforme dentro do intervalo `[a,b]`.
 
-function monta_EQ_2D(Nx1::Int64, Nx2::Int64)
-  # Define o número de funções φ no eixo x₁ e x₂
-  nx1 = Nx1 + 1
-  nx2 = Nx2 + 1
+# Exemplo
+```@example
 
-  # Calcula o número de funções globais φ que compõem a base do espaço Vₘ
-  m = (nx1 - 2) * (nx2 - 2)
-
-  # Inicializa o vetor EQ preenchido com m+1
-  EQ = fill(m + 1, nx1 * nx2)
-
-  # Vetor contendo os índices das funções globais φ que compõem a base do espaço Vₘ
-  L = reshape((0:(nx1-3)) .+ ((nx1+2):nx1:((nx2-2)*nx1+2))', :, 1)
-
-  # Atribui os valores de 1 até m as funções globais φ que compõem a base do espaço Vₘ
-  EQ[L] = 1:m
-
-  return m, EQ
-end
-
+```
+"""
 function monta_malha_1D_uniforme(baseType, ne, a, b)
   dx = (b[1] - a[1]) / ne
   X = collect(a:dx:b)
@@ -158,6 +181,26 @@ function monta_malha_1D_uniforme(baseType, ne, a, b)
   return Malha(base, ne, neq, coords, dx, EQ, LG, EQoLG, a, b, n_dim, Nx)
 end
 
+"""
+    monta_malha_2D_uniforme(baseType, Nx1, Nx2, a::Tuple, b::Tuple)::Malha
+
+Função que constrói uma malha 2D uniforme.
+
+# Parâmetros
+- `baseType::`: O tipo da base das funções interpoladoras.
+- `Nx1::Int64`: Número de subdivisões da malha no primeiro eixo.
+- `Nx2::Int64`: Número de subdivisões da malha no segundo eixo. 
+- `a::Tuple`: Coordenada do início do intervalo
+- `b::Tuple`: Coordenada do final do intervalo 
+
+# Retorno
+- `malha::Malha`: Uma malha 2D uniforme dentro do intervalo `[a,b]`.
+
+# Exemplo
+```@example
+
+```
+"""
 function monta_malha_2D_uniforme(baseType, Nx1, Nx2, a::Tuple, b::Tuple)::Malha
   # Define o comprimento da base (h₁) e altura (h₂) de cada elemento retangular Ωᵉ
   h₁, h₂ = (b[1] - a[1]) / Nx1, (b[2] - a[2]) / Nx2
@@ -185,6 +228,26 @@ function monta_malha_2D_uniforme(baseType, Nx1, Nx2, a::Tuple, b::Tuple)::Malha
   return Malha(base, ne, neq, coords, h, EQ, LG, EQoLG, a, b, n_dim, Nx)
 end
 
+"""
+    monta_malha_2D_uniforme(baseType, Nx1, Nx2, a::Tuple, b::Tuple)::Malha
+
+Função que constrói uma malha 2D uniforme.
+
+# Parâmetros
+- `baseType::`: O tipo da base das funções interpoladoras.
+- `Nx1::Int64`: Número de subdivisões da malha no primeiro eixo.
+- `Nx2::Int64`: Número de subdivisões da malha no segundo eixo. 
+- `a::Tuple`: Coordenada do início do intervalo
+- `b::Tuple`: Coordenada do final do intervalo 
+
+# Retorno
+- `malha::Malha`: Uma malha 2D uniforme dentro do intervalo `[a,b]`.
+
+# Exemplo
+```@example
+
+```
+"""
 function malha2D_adiciona_ruido(malha::Malha)::Malha
   (X₁, X₂) = malha.coords
   (; h₁, h₂) = malha.dx
@@ -224,15 +287,16 @@ end
 Função que constrói uma malha 2D que cria mais elementos próximos a um ponto especificado.
 
 # Parâmetros
-- `baseType::`: 
-- `Nx1::`: 
-- `Nx2::`: 
-- `a::Tuple`: 
-- `b::Tuple`: 
-- `ponto_foco::Tuple`: 
+- `baseType::`: O tipo da base das funções interpoladoras.
+- `Nx1::Int64`: Número de subdivisões da malha no primeiro eixo.
+- `Nx2::Int64`: Número de subdivisões da malha no segundo eixo. 
+- `a::Tuple`: Coordenada do início do intervalo
+- `b::Tuple`: Coordenada do final do intervalo 
+- `ponto_foco::Tuple`: O ponto na malha onde elementos serão adicionados em volta.
+- `precisao::Int64 = 1`: A quantidade de iterações de incremento de intervalos em torno do ponto_foco
 
 # Retorno
-
+- `malha::Malha`: Uma malha 2D com concentração de elementos em `ponto_foco`.
 
 # Exemplo
 ```@example
@@ -240,7 +304,7 @@ Função que constrói uma malha 2D que cria mais elementos próximos a um ponto
 ```
 """
 function monta_malha_2D_foco(
-    baseType, Nx1, Nx2, a::Tuple, b::Tuple, ponto_foco::Tuple, precisao = 1)::Malha
+    baseType, Nx1, Nx2, a::Tuple, b::Tuple, ponto_foco::Tuple, precisao::Int64 = 1)::Malha
 
   # Define o comprimento da base (h₁) e altura (h₂) de cada elemento retangular Ωᵉ
   h₁, h₂ = (b[1] - a[1]) / Nx1, (b[2] - a[2]) / Nx2
