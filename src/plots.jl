@@ -1,3 +1,22 @@
+"""
+    plot_solucao_aproximada(c::Array, malha::Malha, gif::Bool = false)
+
+A partir da solução do sistema e a malha, plota a solução aproximada. 
+No caso do espaço ser bidimensional é possível atribuir `gif = true` para que o plot seja um gif animado com visão 360⁰.
+
+# Parâmetros
+- `c::Array`: O vetor contendo a solução do sistema linear.
+- `malha::Malha`: A malha sob a qual está sendo solucionado o problema.
+- `gif::Bool = false`: Flag para plotar o gráfico como um gif animado.
+
+# Retorno
+Não há retorno, porém dá `display` no gráfico plotado.
+
+# Exemplo
+```@example
+
+```
+"""
 function plot_solucao_aproximada(c::Array, malha::Malha, gif::Bool = false)
   uh = monta_u_aproximada(c, malha)
 
@@ -25,6 +44,22 @@ function plot_solucao_aproximada(c::Array, malha::Malha, gif::Bool = false)
   end
 end
 
+"""
+    plot_malha_2D(malha::Malha)
+
+Plota o gráfico que representa a malha.
+
+# Parâmetros
+- `malha::Malha`: A malha sob a qual está sendo solucionado o problema.
+
+# Retorno
+Dá `display` no gráfico plotado.
+
+# Exemplo
+```@example
+
+```
+"""
 function plot_malha_2D(
     malha::Malha
 )
