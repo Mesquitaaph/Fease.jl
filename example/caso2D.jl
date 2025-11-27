@@ -52,7 +52,8 @@ function caso_2D()
   u = (x₁, x₂) -> sin(π * x₁) * sin(π * x₂)
 
   # Calcula o erro para cada uma das quantidades de elementos finitos.
-  convergence_test!(E, NE, 2, monta_malha, pseudo_a, f, u)
+  n_dim = 2
+  convergence_test!(E, NE, n_dim, monta_malha, pseudo_a, f, u)
 
   # Plota o resultado do estudo
   plot(H, E, xaxis = :log10, yaxis = :log10, label = "Erro")
