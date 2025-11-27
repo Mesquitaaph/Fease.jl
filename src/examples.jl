@@ -90,9 +90,9 @@ Valores que definem parâmetros de um problema.
 - `u::Function`: Função que representa a solução analítica da equação do problema.
 """
 struct RunValues
-  α::Float64
-  β::Float64
-  γ::Float64
+  α
+  β
+  γ
   f::Function
   u::Function
 end
