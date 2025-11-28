@@ -8,14 +8,14 @@ Como apresentado no título, a equação a ser resolvida é similar à de Poisso
 
 Dada uma função $f: \bar{\Omega} \to \mathbb{R}$ e constantes reais $\alpha > 0$ e $\beta \geq 0$, determine $u: \bar{\Omega} \to \mathbb{R}$ tal que
 
-$$
+```math
 \left\{
 \begin{aligned}
 -\alpha\Delta u(x) + \beta u(x) = f(x),\quad x\in \Omega\\
 u(x) = 0, \quad x \in \Gamma
 \end{aligned}
 \right.
-$$
+```
 
 sendo $\Omega$ um subconjunto do $\mathbb{R}^2$, $\Gamma$ a fronteira de $\Omega$ e $\bar{\Omega} = \Omega \cup \Gamma$.
 
