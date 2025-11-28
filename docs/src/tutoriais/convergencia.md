@@ -29,12 +29,17 @@ Em `monta_malha_2D_uniforme`, `NX` é seguido de reticências pois a função es
 Em seguida, defina os parâmetros do problema
 
 ```julia
-alpha = 1.0
-beta = 1.0
-f = (x₁, x₂) -> (2 * alpha * π^2 + beta) * sin(π * x₁) * sin(π * x₂)
+α = 1.0
+β = 1.0
+f = (x₁, x₂) -> (2 * α * π^2 + β) * sin(π * x₁) * sin(π * x₂)
 u = (x₁, x₂) -> sin(π * x₁) * sin(π * x₂)
 
-run_values = RunValues(alpha, beta, 0.0, f, u)
+# Define o pseudo operador linear a(u,v).
+function pseudo_a(termos_equacao)
+  (; ∇u, ∇v, u, v) = termos_equacao
+
+  return β * dot(u, v) + α * dot(∇u, ∇v)
+end
 
 n_dims = 2
 ```
@@ -52,7 +57,7 @@ E = zeros(length(NE)) # Vetor com os erros para cada uma das quantidades de elem
 A partir disso, podemos calcular a convergência do erro com
 
 ```julia
-convergence_test!(E, NE, run_values, n_dims, monta_malha)
+convergence_test!(E, NE, n_dim, monta_malha, pseudo_a, f, u)
 ```
 
 Em seguida, plotamos o erro `H`x`E` junto com um gráfico `H`x`H²` para verificarmos o paralelismo e confirmarmos que o erro possui grau 2. Para isso, o plot é feito na escala logarítimica de forma que linearize o grau das curvas.

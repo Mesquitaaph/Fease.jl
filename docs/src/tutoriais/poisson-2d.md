@@ -49,16 +49,16 @@ malha = monta_malha_2D_uniforme(baseType, Nx1, Nx2, a, b)
 Agora, definimos alguns parâmetros do problema
 
 ```julia
-alpha = 1.0
-beta = 1.0
-f = (x₁, x₂) -> (2 * alpha * π^2 + beta) * sin(π * x₁) * sin(π * x₂)
+α = 1.0
+β = 1.0
+f = (x₁, x₂) -> (2 * α * π^2 + β) * sin(π * x₁) * sin(π * x₂)
 u = (x₁, x₂) -> sin(π * x₁) * sin(π * x₂)
 ```
 
 Em seguida, montamos uma função que referencia o operador bilinear $a(u,v)$ com parâmetros obtidos de `run_values`.
 
 ```julia
-function ref_op_a(termos_equacao::TermosEquacao)
+function pseudo_a(termos_equacao::TermosEquacao)
   (; ∇u, ∇v, u, v) = termos_equacao
 
   return β * dot(u, v) + α * dot(∇u, ∇v)
@@ -68,7 +68,7 @@ end
 Enfim, com a `f` e a malha definidas e o operador $a(u, v)$ referenciado, basta resolver o sistema, com
 
 ```julia
-C = solve_sys(f, malha, ref_op_a)
+c = solve_sys(f, malha, pseudo_a)
 ```
 
 Resultando em
