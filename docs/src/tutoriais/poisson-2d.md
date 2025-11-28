@@ -74,13 +74,13 @@ C = solve_sys(f, malha, ref_op_a)
 Resultando em
 
 ```julia-repl
-6-element Vector{Float64}:
- 0.6591976796035088
- 0.9322462987801565
- 0.6591976796035092
- 0.659197679603509
- 0.9322462987801566
- 0.6591976796035091
+9-element Vector{Float64}:
+ 0.527459460647701
+ 0.7459403228499766
+ 0.5274594606477011
+ ⋮
+ 0.7459403228499767
+ 0.5274594606477011
 ```
 
 Com esse resultado também é possível utilizar um método implementado internamente para plotar esse resultado,
