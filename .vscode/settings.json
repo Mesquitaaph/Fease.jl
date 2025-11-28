@@ -2,7 +2,7 @@
   "editor.formatOnSave": true,
   "julia.lint.missingrefs": "all",
   "julia.lint.disabledDirs": [
-    "example",
+    "tutorials",
     "docs",
     "test",
     "nao-generalizados"
