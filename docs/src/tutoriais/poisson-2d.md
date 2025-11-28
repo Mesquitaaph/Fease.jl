@@ -1,6 +1,25 @@
-# Equação de Poisson no espaço bidimensional
+# Equação similar à Poisson no espaço bidimensional
 
 Para este tutorial é esperado que você tenha seguido o passo a passo em [Para começar a utilizar](../para-comecar/para-começar-a-utilizar.md). As próximas etapas serão parecidas com as apresentadas no artigo.
+
+## A equação
+
+Como apresentado no título, a equação a ser resolvida é similar à de Poisson, com uma parcela extra. Portanto, vamos ao problema:
+
+Dada uma função $f: \bar{\Omega} \to \mathbb{R}$ e constantes reais $\alpha > 0$ e $\beta \geq 0$, determine $u: \bar{\Omega} \to \mathbb{R}$ tal que
+
+$$
+\left\{
+\begin{aligned}
+-\alpha\Delta u(x) + \beta u(x) = f(x),\quad x\in \Omega\\
+u(x) = 0, \quad x \in \Gamma
+\end{aligned}
+\right.
+$$
+
+sendo $\Omega$ um subconjunto do $\mathbb{R}^2$, $\Gamma$ a fronteira de $\Omega$ e $\bar{\Omega} = \Omega \cup \Gamma$.
+
+Assim, o que queremos é encontrar uma solução aproximada de $u$ com o Fease.jl. A seguir temos o passo a passo para obtê-la.
 
 ## Passo a passo
 
@@ -73,3 +92,5 @@ plot_solucao_aproximada(C, malha, false)
 Resultando no gráfico
 
 ![Solução Poisson 2D](../assets/plot-sol-poisson-1.svg)
+
+Você também pode aplicar o tutorial de [Estudo de Convergência do Erro](../tutoriais/convergencia.md) e verificar se a convergência do erro segue o esperado. Caso contrário, revise seu código e encontre o erro.
