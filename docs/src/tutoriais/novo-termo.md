@@ -10,7 +10,7 @@ Com o código-fonte em mãos, na pasta `src/testes`, crie um arquivo para testar
 include("testes_novo_termo.jl")
 ```
 
-Em seguida, no arquivo criado, vamos implementar uma função chamada `novo_termo_2D`, para adicionar um novo termo de equação e testá-lo, em um espaço bidimensional. Essa função criada vai ter como base o exemplo em `example/Caso2D.jl`.
+Em seguida, no arquivo criado, vamos implementar uma função chamada `novo_termo_2D`, para adicionar um novo termo de equação e testá-lo, em um espaço bidimensional. Essa função criada vai ter como base o exemplo em `tutorials/Caso2D.jl`.
 
 ```julia
 function novo_termo()
