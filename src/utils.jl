@@ -28,3 +28,23 @@ end
 function test_revise() # Nos testes, verificar se essa saida é true
   return true
 end
+
+function showEQ(Nx1::Int64, Nx2::Int64, n_dir::Int64, EQ)
+  EQs = []  
+  for dir in 1:n_dir
+    EQ_matrix = transpose(reshape(EQ[:, dir], (Nx1+1, Nx2+1)))
+    append!(EQs, [EQ_matrix])
+  end
+
+  final_EQ = fill([], (Nx1+1, Nx2+1))
+  for i in 1:(Nx1+1)*(Nx2+1)
+    item = []
+    for dir in 1:n_dir
+      append!(item, EQs[dir][i])
+    end
+
+    final_EQ[i] = item
+  end
+  
+  display(reverse(reverse(final_EQ), dims=2))
+end

@@ -146,6 +146,47 @@ function montaEQ_geral(Nx1::Int64, Nx2::Int64 = 0)
 end
 
 """
+    montaEQ_2D_Mult(Nx1::Int64, Nx2::Int64, n_dir::Int64, nos_prescritos)
+
+Função que monta uma matriz que associa a equação e direção de um nó à sua numeração.
+
+# Parâmetros
+- `Nx1::Int64`: Número de subdivisões da malha no primeiro eixo.
+- `Nx2::Int64`: Número de subdivisões da malha no segundo eixo.
+- `n_dir::Int64`: Número de direções (ou graus de liberdade) em cada nó.
+- `nos_prescritos::Vector{Vector{Int64}}`: Lista de lista de nós prescritos (uma lista pra cada direção)
+
+# Retorno
+- `(neq, EQ)::Tuple{Int64, Vector{Vector{Int64}}`: Tupla com número de equações e matriz EQ.
+
+# Exemplo
+```@example
+
+```
+"""
+
+function montaEQ_2D_Mult(Nx1::Int64, Nx2::Int64, n_dir::Int64, nos_prescritos)
+    n_eqs = (Nx1+1)*(Nx2+1)
+    nos_prescritos = map(unique, nos_prescritos)
+    qtd_prescritos = sum([size(v)[1] for v in nos_prescritos])
+
+    neq = ((n_eqs*n_dir) - qtd_prescritos) ::Int64
+    EQ = ((neq+1) * ones(Int, n_eqs, n_dir)) ::Matrix{Int64} 
+
+    index = 1
+    for i in 1:n_eqs
+        for dir in 1:n_dir                
+            if !(i in nos_prescritos[dir])
+                EQ[i, dir] = index 
+                index += 1
+            end
+        end
+    end
+
+    return (neq, EQ)
+end
+
+"""
     monta_malha_1D_uniforme(baseType, Nx1, a, b)::Malha
 
 Função que constrói uma malha 1D uniforme.
