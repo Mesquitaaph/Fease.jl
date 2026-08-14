@@ -24,7 +24,7 @@ struct Malha
   neq::Int64
   coords::Tuple
   dx
-  EQ::Vector{Int64}
+  EQ::Matrix{Int64}
   LG::Matrix{Int64}
   EQoLG::Matrix{Int64}
   a
@@ -68,6 +68,10 @@ function montaLG_geral(Nx1::Int64, Nx2::Int64 = 0)
   for e in (Nx1+1):ne
     @inbounds LG[:, e] .= LG[:, e-Nx1] .+ (Nx1 + 1)
   end
+
+  swap = LG[3, :]
+  LG[3, :] = LG[4, :]
+  LG[4, :] = swap
 
   return LG
 end
@@ -233,6 +237,8 @@ Função que constrói uma malha 2D uniforme.
 - `Nx2::Int64`: Número de subdivisões da malha no segundo eixo. 
 - `a::Tuple`: Coordenada do início do intervalo
 - `b::Tuple`: Coordenada do final do intervalo 
+- `n_dir::Int64`: Número de graus de liberdade em cada nó 
+- `nos_prescritos::Vector{Vector{Any}}`: Lista de nós prescritos em cada direção (grau de liberdade). 
 
 # Retorno
 - `malha::Malha`: Uma malha 2D uniforme dentro do intervalo `[a,b]`.
@@ -242,7 +248,7 @@ Função que constrói uma malha 2D uniforme.
 
 ```
 """
-function monta_malha_2D_uniforme(baseType, Nx1, Nx2, a::Tuple, b::Tuple)::Malha
+function monta_malha_2D_uniforme(baseType, Nx1, Nx2, a::Tuple, b::Tuple, n_dir::Int64, nos_prescritos::Vector{Vector{Any}} = [[],[]])::Malha
   # Define o comprimento da base (h₁) e altura (h₂) de cada elemento retangular Ωᵉ
   h₁, h₂ = (b[1] - a[1]) / Nx1, (b[2] - a[2]) / Nx2
   h = (; h₁, h₂)
@@ -257,7 +263,12 @@ function monta_malha_2D_uniforme(baseType, Nx1, Nx2, a::Tuple, b::Tuple)::Malha
   X₁ = [x₁[i] for i in 1:(Nx1+1), j in 1:(Nx2+1)]
   X₂ = [x₂[j] for i in 1:(Nx1+1), j in 1:(Nx2+1)]
 
-  neq, EQ = montaEQ_geral(Nx1, Nx2)
+  if(mapreduce(isempty, &, nos_prescritos))
+    neq, EQ = montaEQ_geral(Nx1, Nx2)
+  else
+    neq, EQ = montaEQ_2D_Mult(Nx1, Nx2, n_dir, nos_prescritos)
+  end
+
   LG = montaLG_geral(Nx1, Nx2)
   EQoLG = EQ[LG]
 

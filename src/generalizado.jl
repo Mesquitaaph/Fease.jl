@@ -179,6 +179,8 @@ function mudanca_variavel_xξ(Xᵉ, Φξ, n_dim)
   return [x...]
 end
 
+export mudanca_variavel_xξ
+
 """
     elem_coords(malha::Malha, e::Int)
 
@@ -214,6 +216,8 @@ function elem_coords(malha::Malha, e::Int)
 
   return eqs_idx, Xᵉ
 end
+
+export elem_coords
 
 """
     montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, pseudo_a)

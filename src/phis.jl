@@ -95,6 +95,8 @@ function ϕ_2D(ξ₁::Float64, ξ₂::Float64)::Vector{Float64}
   ]
 end
 
+export ϕ_2D
+
 """
     ∇ϕ_1D(P...)
 
