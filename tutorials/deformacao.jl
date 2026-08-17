@@ -1,4 +1,5 @@
 using Fease 
+using LinearAlgebra
 using GaussQuadrature
 
 # ============== Funções específicas ===============
