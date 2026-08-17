@@ -133,7 +133,8 @@ function drawGridFromFile(elemX, elemY, coordsFileName, LGFileName, xWindowLim, 
     return drawGrid(X, Y, elemX, elemY, transpose(LG), xWindowLim, yWindowLim)
 end 
 
-function mapper_to_x_generic(Xᵉ_a::Vector{Any}, ξ₁::Float64, ξ₂::Float64)::Vector{Float64}
+function mapper_to_x_generic(Xᵉ_a::Vector{Float64}, ξ₁::Float64, ξ₂::Float64)::Vector{Float64}
+    # Aparentemente não há mais a necessidade de Xᵉ_a. Avaliar exclusão
     return ϕ_2D(ξ₁, ξ₂)
 end
 
@@ -240,6 +241,42 @@ function build_f(pontos_fronteira::Array, nos_fronteira, e_fronteira, malha, P, 
     return f 
 end
 
+function build_g(nodes, coords, values)::Function
+    nodes_coords = []
+    
+    for node in nodes
+        append!(nodes_coords, [coords[1][node], coords[2][node]])
+    end
+    
+    g = function(x) 
+            if(x in nodes_coords)
+                return values[findfirst(item -> item == x, nodes_coords)]
+            else
+                return [0.0; 0.0]
+            end
+        end
+    
+    return g    
+end
+
+# function calcL(s1::Float64, s2::Float64, β::Float64, B, inv_B)
+#     L = zeros(2,2,2,2) 
+#     delta = 1.0I
+    
+#     for i in 1:2
+#         for j in 1:2
+#             for k in 1:2
+#                 for l in 1:2
+#                     L[i, j, k, l] = β*delta[k, l]*delta[i, j] + s1*(delta[i, k]*B[l, j] + B[i, l]*delta[j, k]) -
+#                                     s2*(inv_B[i, k] * delta[l, j] + delta[l, i]*inv_B[k, j])
+#                 end
+#             end
+#         end
+#     end
+    
+#     return L
+# end
+
 # ============== Início script =====================
 
 # Infos Elementos Finitos
@@ -262,6 +299,7 @@ params = [s1, s2, β]
 winX = 2.0
 winY = 2.0
 
+# Do domínio do problema
 ponto_inf_esq = (0.0, 0.0)
 ponto_inf_dir = (λ₁ , 0.0)
 ponto_sup_dir = (λ₁ , λ₂ )
@@ -274,7 +312,7 @@ nos_fronteiras = [
     getQuadSideNodes(Nx1, Nx2, 4)
 ]
 
-# Neste exemplo, do quadrilatero apoiado no chão, estas são as prescrições
+# Neste exemplo, do quadrilatero apoiado no chão, estes são os nós prescritos
 presc_x1 = [1]
 presc_x2 = nos_fronteiras[1]
 presc = [presc_x1, presc_x2]
@@ -296,31 +334,27 @@ P, W = legendre(2)
 τ = 1 * Δτ
 f = build_f(pts_fronteira, nos_fronteiras, elementos_fronteiras, malha, P, τ) 
 
-# coords = joinToPoints(X₁, X₂)
-# nodes = (unique(Iterators.flatten(presc)))
-# values = repeat([[0.0; 0.0]], size(nodes)[1])
+# Construir quais valores estão prescritos. Ideal incluir estrutura de prescrição no objeto Malha
+nodes = (unique(Iterators.flatten(presc)))
+values = repeat([[0.0; 0.0]], size(nodes)[1])
 
-# g = build_g(nodes, coords, values)    
+g = build_g(nodes, malha.coords, values)    
 
-# s1, s2, β =  params
-# h  = -s2/s1
-# # Atualizações de p?? Tr(H) ≈ 0 sempre, pode ficar de fora
-# p = 1-h
-# params = [s1, s2, p, β]
+h  = -s2/s1
+p = 1-h
+params = [s1, s2, p, β]
 
-# ne = Nx1 * Nx2
-# npts = (Nx1 + 1) * (Nx2 + 1)
+# F e T iniciais: Identidade e Matriz nula
+F_def = repeat([Matrix(1.0I, 2, 2)], malha.ne)
+T = repeat([Matrix(0.0I, 2, 2)], malha.ne)
 
-# # F e T iniciais: Identidade e Matriz nula
-# F_def = repeat([Matrix(1.0I, 2, 2)], ne)
-# T = repeat([Matrix(0.0I, 2, 2)], ne)
+X_novo = []
+K_vec = []
+F_vec = []
+sol_vec = []
+infos_primarias = []
+infos_secundarias = []
 
-# #X_novo = []
-# #K_vec = []
-# #F_vec = []
-# sol_vec = []
-# infos_primarias = []
-# infos_secundarias = []
 # for iter in 1:n_passos
     
 #     K, F = monta_K_F_global(params, f, pts_fronteira, g, presc, Nx1, Nx2, X, F_def, T, m, EQ, LG)
@@ -352,83 +386,4 @@ f = build_f(pts_fronteira, nos_fronteiras, elementos_fronteiras, malha, P, τ)
 # end
 
 # return sol_vec, infos_primarias, infos_secundarias
-
-# function calcL(s1::Float64, s2::Float64, β::Float64, B, inv_B)
-#     L = zeros(2,2,2,2) 
-#     delta = 1.0I
-    
-#     for i in 1:2
-#         for j in 1:2
-#             for k in 1:2
-#                 for l in 1:2
-#                     L[i, j, k, l] = β*delta[k, l]*delta[i, j] + s1*(delta[i, k]*B[l, j] + B[i, l]*delta[j, k]) -
-#                                     s2*(inv_B[i, k] * delta[l, j] + delta[l, i]*inv_B[k, j])
-#                 end
-#             end
-#         end
-#     end
-    
-#     return L
-# end
-
-# function build_g(nodes, coords, values)::Function
-#     nodes_coords = coords[nodes, :]
-    
-#     g = function(x) 
-#             if(x in nodes_coords)
-#                 return values[findfirst(item -> item == x, nodes_coords)]
-#             else
-#                 return [0.0; 0.0]
-#             end
-#         end
-    
-#     return g    
-# end
-
-# function build_f(pontos_fronteira::Array, nos_fronteira, e_fronteira, X, P, LG, τ::Float64)  
-#     p1 = pontos_fronteira[1]
-#     p2 = pontos_fronteira[2]
-#     p3 = pontos_fronteira[3]
-#     p4 = pontos_fronteira[4]
-    
-#     dy = p4[2] - p1[2]
-#     dx = p4[1] - p1[1]
-#     dl = sqrt(dx^2 + dy^2)
-#     _sen = dy/dl
-#     _cos = dx/dl
-
-#     bound1 = bound_expr(1, nos_fronteira[1], e_fronteira[1], X, P, LG)
-#     bound2 = bound_expr(2, nos_fronteira[2], e_fronteira[2], X, P, LG)
-#     bound3 = bound_expr(3, nos_fronteira[3], e_fronteira[3], X, P, LG)
-#     bound4 = bound_expr(4, nos_fronteira[4], e_fronteira[4], X, P, LG)
-    
-#     f = function(ponto)
-#             tracao = zeros(2) 
-#             #println("Checking for ", ponto)
-        
-#             if(bound1(ponto))
-#                 tracao[1] += -τ
-#                 tracao[2] += 0.0
-#             end
-        
-#             if(bound2(ponto))
-#                 tracao[1] += τ * _cos
-#                 tracao[2] += τ * _sen
-#             end
-        
-#             if(bound3(ponto))
-#                 tracao[1] += τ
-#                 tracao[2] += 0.0
-#             end
-        
-#             if(bound4(ponto))
-#                 tracao[1] += -τ * _cos
-#                 tracao[2] += -τ * _sen
-#             end
-        
-#             return tracao
-#         end
-    
-#     return f 
-# end
 
