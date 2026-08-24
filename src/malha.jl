@@ -170,24 +170,24 @@ Função que monta uma matriz que associa a equação e direção de um nó à s
 """
 
 function montaEQ_2D_Mult(Nx1::Int64, Nx2::Int64, n_dir::Int64, nos_prescritos)
-    n_eqs = (Nx1+1)*(Nx2+1)
-    nos_prescritos = map(unique, nos_prescritos)
-    qtd_prescritos = sum([size(v)[1] for v in nos_prescritos])
+  n_eqs = (Nx1 + 1) * (Nx2 + 1)
+  nos_prescritos = map(unique, nos_prescritos)
+  qtd_prescritos = sum([size(v)[1] for v in nos_prescritos])
 
-    neq = ((n_eqs*n_dir) - qtd_prescritos) ::Int64
-    EQ = ((neq+1) * ones(Int, n_eqs, n_dir)) ::Matrix{Int64} 
+  neq = ((n_eqs * n_dir) - qtd_prescritos)::Int64
+  EQ = ((neq + 1) * ones(Int, n_eqs, n_dir))::Matrix{Int64}
 
-    index = 1
-    for i in 1:n_eqs
-        for dir in 1:n_dir                
-            if !(i in nos_prescritos[dir])
-                EQ[i, dir] = index 
-                index += 1
-            end
-        end
+  index = 1
+  for i in 1:n_eqs
+    for dir in 1:n_dir
+      if !(i in nos_prescritos[dir])
+        EQ[i, dir] = index
+        index += 1
+      end
     end
+  end
 
-    return (neq, EQ)
+  return (neq, EQ)
 end
 
 """
@@ -248,7 +248,8 @@ Função que constrói uma malha 2D uniforme.
 
 ```
 """
-function monta_malha_2D_uniforme(baseType, Nx1, Nx2, a::Tuple, b::Tuple, n_dir::Int64, nos_prescritos::Vector{Vector{Any}} = [[],[]])::Malha
+function monta_malha_2D_uniforme(baseType, Nx1, Nx2, a::Tuple, b::Tuple, n_dir::Int64,
+    nos_prescritos::Vector{Vector{Any}} = [[], []])::Malha
   # Define o comprimento da base (h₁) e altura (h₂) de cada elemento retangular Ωᵉ
   h₁, h₂ = (b[1] - a[1]) / Nx1, (b[2] - a[2]) / Nx2
   h = (; h₁, h₂)
@@ -263,7 +264,7 @@ function monta_malha_2D_uniforme(baseType, Nx1, Nx2, a::Tuple, b::Tuple, n_dir::
   X₁ = [x₁[i] for i in 1:(Nx1+1), j in 1:(Nx2+1)]
   X₂ = [x₂[j] for i in 1:(Nx1+1), j in 1:(Nx2+1)]
 
-  if(mapreduce(isempty, &, nos_prescritos))
+  if (mapreduce(isempty, &, nos_prescritos))
     neq, EQ = montaEQ_geral(Nx1, Nx2)
   else
     neq, EQ = montaEQ_2D_Mult(Nx1, Nx2, n_dir, nos_prescritos)
