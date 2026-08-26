@@ -48,3 +48,61 @@ function showEQ(Nx1::Int64, Nx2::Int64, n_dir::Int64, EQ)
   
   display(reverse(reverse(final_EQ), dims=2))
 end
+
+function getQuad(x, y, LG, elem)
+  idx00 = LG[elem, 1]
+  idx01 = LG[elem, 2]
+  idx11 = LG[elem, 3]
+  idx10 = LG[elem, 4]
+
+  X = [x[idx00], x[idx10], x[idx11], x[idx01]]
+  Y = [y[idx00], y[idx10], y[idx11], y[idx01]]
+
+  return X, Y
+end
+
+function drawQuadInFig(fig, xVertices, yVertices)
+  for i in 1:3
+    xPair = [xVertices[i], xVertices[i+1]]
+    yPair = [yVertices[i], yVertices[i+1]]
+    linesegments!(fig[1, 1], xPair, yPair, color = :navy)
+  end
+
+  xPair = [xVertices[4], xVertices[1]]
+  yPair = [yVertices[4], yVertices[1]]
+  linesegments!(fig[1, 1], xPair, yPair, color = :navy)
+
+  return fig
+end
+
+function drawGrid(xValues, yValues, numX, numY, LG, windowX, windowY)
+  LGᵗ = transpose(LG)
+
+  f = Figure(size = (500, 500))
+  Axis(f[1, 1], limits = (0, windowX, 0, windowY))
+
+  for i in 1:numY
+    for j in 1:numX
+      elem = (i - 1) * (numX) + j
+
+      xVertices, yVertices = getQuad(xValues, yValues, LGᵗ, elem)
+      drawQuadInFig(f, xVertices, yVertices)
+    end
+  end
+
+  return f
+end
+export drawGrid
+
+function drawGridFromFile(elemX, elemY, coordsFileName, LGFileName, xWindowLim, yWindowLim)
+  malhaFile = readdlm(coordsFileName)
+
+  X, Y = malhaFile[:, 2], malhaFile[:, 3]
+
+  LG = readdlm(LGFileName)[:, 1:4]
+  LG = convert(Matrix{Int}, LG)
+  LG = LG .+ 1 # Indices 1-based (julia)
+
+  return drawGrid(X, Y, elemX, elemY, transpose(LG), xWindowLim, yWindowLim)
+end
+export drawGridFromFile

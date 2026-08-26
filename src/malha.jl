@@ -53,6 +53,16 @@ struct Fronteira
   nos_prescritos
 end
 
+"""
+  getQuadSideNodes(Nx1::Int64, Nx2::Int64, side::Int64)::Vector{Union{Any, Int64}}
+
+Função que recupera a numeração de todos os nós de um lado de um quadrilátero
+
+# Campos
+- `Nx1::Int64`: Número de elementos da direção X
+- `Nx2::Int64`: Número de elementos da direção Y
+- `side::Int64`: Qual o lado de interesse do quadrilátero. Numerado de 1 à 4, começando pelo de baixo e continuando em sentido anti-horário
+"""
 function getQuadSideNodes(Nx1::Int64, Nx2::Int64, side::Int64)::Vector{Union{Any, Int64}}
   nodes = []
 
@@ -73,6 +83,16 @@ function getQuadSideNodes(Nx1::Int64, Nx2::Int64, side::Int64)::Vector{Union{Any
 end
 export getQuadSideNodes
 
+"""
+  getQuadSideElements(Nx1::Int64, Nx2::Int64, side::Int64)::Vector{Union{Any, Int64}}
+
+Função que recupera a numeração de todos os elementos de um lado de um quadrilátero
+
+# Campos
+- `Nx1::Int64`: Número de elementos da direção X
+- `Nx2::Int64`: Número de elementos da direção Y
+- `side::Int64`: Qual o lado de interesse do quadrilátero. Numerado de 1 à 4, começando pelo de baixo e continuando em sentido anti-horário
+"""
 function getQuadSideElements(Nx1::Int64, Nx2::Int64, side::Int64)::Vector{Union{Any, Int64}}
   elements = []
 
@@ -93,8 +113,19 @@ function getQuadSideElements(Nx1::Int64, Nx2::Int64, side::Int64)::Vector{Union{
 end
 export getQuadSideElements
 
+"""
+  monta_fronteira_2D_uniforme(a, b, Nx1, Nx2, nos_prescritos = [[], []])
 
-function monta_fronteira_2D_uniforme(a, b, Nx1, Nx2, nos_prescritos = [[], []])
+Função que gera um objeto Fronteira para o caso regular uniforme, sem nós prescritos por padrão
+
+# Campos
+- `a::Vector{Float64}`: Coordenadas do ponto do começo do domínio (ponto inferior esquerdo)
+- `b::Vector{Float64}`: Coordenadas do ponto do final do domínio (ponto superior direito)
+- `Nx1::Int64`: Número de elementos da direção X
+- `Nx2::Int64`: Número de elementos da direção Y
+- `nos_prescritos::Vector{Vector{Any}}`: Lista de lista de nós prescritos, uma lista para cada grau de liberdade.
+"""
+function monta_fronteira_2D_uniforme(a, b, Nx1, Nx2, nos_prescritos = [])
 
   ponto_inf_esq = [a[1], a[2]]
   ponto_inf_dir = [b[1], a[2]]
@@ -132,6 +163,61 @@ function monta_fronteira_2D_uniforme(a, b, Nx1, Nx2, nos_prescritos = [[], []])
   return fronteira
 end
 export monta_fronteira_2D_uniforme
+
+"""
+  getSidefromNode(node::Int64, Nx1::Int64, Nx2::Int64)
+
+Função que retorna em quais fronteiras um nó está (possivelmente, nenhum)
+
+# Campos
+- `node::Int64`: Número global do nó
+- `Nx1::Int64`: Número de elementos da direção X
+- `Nx2::Int64`: Número de elementos da direção Y
+"""
+function getSidefromNode(node::Int64, Nx1::Int64, Nx2::Int64)
+  sides = []
+
+  if node in 1:Nx1+1
+    append!(sides, 1)
+  end
+
+  if node in Nx1+1:Nx1+1:(Nx2+1)*(Nx1+1)
+    append!(sides, 2)
+  end
+
+  if node in Nx2*(Nx1+1)+1:(Nx2+1)*(Nx1+1)
+    append!(sides, 3)
+  end
+
+  if node in 1:Nx1+1:Nx2*(Nx1+1)+1
+    append!(sides, 4)
+  end
+
+  return sides
+end
+export getSidefromNode
+
+"""
+  getBoundariesOfElement(e::Int64, Nx1::Int64, Nx2::Int64, LG)
+
+Função que retorna em quais fronteiras um elemento está (possivelmente, nenhum)
+
+# Campos
+- `e::Int64`: Número do elemento
+- `Nx1::Int64`: Número de elementos da direção X
+- `Nx2::Int64`: Número de elementos da direção Y
+- `LG::Matrix{Int64}`: Matriz de conectividade local/global
+"""
+function getBoundariesOfElement(e::Int64, Nx1::Int64, Nx2::Int64, LG)
+  boundaries = []
+
+  for node in LG[:, e]
+    append!(boundaries, getSidefromNode(node, Nx1, Nx2))
+  end
+
+  return unique(boundaries)
+end
+export getBoundariesOfElement
 
 """
     montaLG_geral(Nx1::Int64, Nx2::Int64 = 0)
