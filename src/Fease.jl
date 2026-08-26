@@ -4,7 +4,7 @@ module Fease
 using
       BenchmarkTools, GaussQuadrature, Plots, BandedMatrices, Printf,
       DataFrames, Latexify, Statistics, SparseArrays, LinearAlgebra, Random,
-      JuliaFormatter
+      JuliaFormatter, CairoMakie
 
 export format_num, measure_func, test_revise
 
