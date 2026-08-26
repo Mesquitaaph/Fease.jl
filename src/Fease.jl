@@ -8,7 +8,7 @@ using
 
 export format_num, measure_func, test_revise
 
-export Malha, monta_malha_1D_uniforme, monta_malha_2D_uniforme, malha2D_adiciona_ruido,
+export Malha, Fronteira, monta_malha_1D_uniforme, monta_malha_2D_uniforme, malha2D_adiciona_ruido,
        monta_malha_2D_foco, montaEQ_2D_Mult
 
 export examples_1D, examples_2D, RunValues, TermosEquacao

@@ -5,44 +5,6 @@ using SparseArrays
 
 # ============== Funções específicas ===============
 
-function getQuadSideNodes(Nx1::Int64, Nx2::Int64, side::Int64)::Vector{Union{Any, Int64}}
-  nodes = []
-
-  if side == 1
-    nodes = reduce(vcat, 1:Nx1+1)
-  end
-  if side == 2
-    nodes = reduce(vcat, Nx1+1:Nx1+1:(Nx2+1)*(Nx1+1))
-  end
-  if side == 3
-    nodes = reduce(vcat, Nx2*(Nx1+1)+1:(Nx2+1)*(Nx1+1))
-  end
-  if side == 4
-    nodes = reduce(vcat, 1:Nx1+1:Nx2*(Nx1+1)+1)
-  end
-
-  return nodes
-end
-
-function getQuadSideElements(Nx1::Int64, Nx2::Int64, side::Int64)::Vector{Union{Any, Int64}}
-  elements = []
-
-  if side == 1
-    elements = reduce(vcat, 1:Nx1)
-  end
-  if side == 2
-    elements = reduce(vcat, Nx1:Nx1:(Nx2)*(Nx1))
-  end
-  if side == 3
-    elements = reduce(vcat, Nx1*(Nx2-1)+1:1:(Nx2)*(Nx1))
-  end
-  if side == 4
-    elements = reduce(vcat, 1:Nx1:Nx1*(Nx2-1)+1)
-  end
-
-  return elements
-end
-
 function getSidefromNode(node::Int64, Nx1::Int64, Nx2::Int64)
   sides = []
 
@@ -193,11 +155,16 @@ function bound_expr(num_fronteira, nos_fronteira, e_fronteira, malha, P)
   return expr
 end
 
-function build_f(pontos_fronteira::Array, nos_fronteira, e_fronteira, malha, P, τ::Float64)
-  p1 = pontos_fronteira[1]
-  p2 = pontos_fronteira[2]
-  p3 = pontos_fronteira[3]
-  p4 = pontos_fronteira[4]
+function build_f(malha, P, τ::Float64)
+
+  coords_quinas = malha.fronteira.coords_quinas
+  nos_fronteira = malha.fronteira.nos_fronteiras
+  e_fronteira = malha.fronteira.elementos_fronteiras
+
+  p1 = coords_quinas[1]
+  p2 = coords_quinas[2]
+  p3 = coords_quinas[3]
+  p4 = coords_quinas[4]
 
   dy = p4[2] - p1[2]
   dx = p4[1] - p1[1]
@@ -574,7 +541,7 @@ function monta_F_local(f::Function, g, presc_map, boundaries, Xᵉ, Kᵉ, F_def�
 end
 
 function monta_K_F_global(
-    params::Array{Float64}, f::Function, pts_fronteira, g::Function, presc, malha, F_def, T)
+    params::Array{Float64}, f::Function, g::Function, presc, malha, F_def, T)
   m = malha.neq
 
   K_global = spzeros(m + 1, m + 1)
@@ -792,43 +759,28 @@ winX = 2.0
 winY = 2.0
 
 # Do domínio do problema
-ponto_inf_esq = (0.0, 0.0)
-ponto_inf_dir = (λ₁, 0.0)
-ponto_sup_dir = (λ₁, λ₂)
-ponto_sup_esq = (0.0, λ₂)
-
-nos_fronteiras = [
-  getQuadSideNodes(Nx1, Nx2, 1),
-  getQuadSideNodes(Nx1, Nx2, 2),
-  getQuadSideNodes(Nx1, Nx2, 3),
-  getQuadSideNodes(Nx1, Nx2, 4)
-]
+ponto_inf_esq = [0.0, 0.0]
+ponto_sup_dir = [λ₁, λ₂]
 
 # Neste exemplo, do quadrilatero apoiado no chão, estes são os nós prescritos
 presc_x1 = [1]
-presc_x2 = nos_fronteiras[1]
-presc = [presc_x1, presc_x2]
+presc_x2 = getQuadSideNodes(Nx1, Nx2, 1)
+nos_prescritos = [presc_x1, presc_x2]
+
+fronteira = monta_fronteira_2D_uniforme(ponto_inf_esq, ponto_sup_dir, Nx1, Nx2, nos_prescritos)
 
 baseType = BaseTypes.linearLagrange
-n_dir = 2
+n_graus_liberdade = 2
 malha = monta_malha_2D_uniforme(
-  baseType, Nx1, Nx2, ponto_inf_esq, ponto_sup_dir, n_dir, presc)
-
-pts_fronteira = [ponto_inf_esq, ponto_inf_dir, ponto_sup_dir, ponto_sup_esq]
-
-elementos_fronteiras = [
-  getQuadSideElements(Nx1, Nx2, 1),
-  getQuadSideElements(Nx1, Nx2, 2),
-  getQuadSideElements(Nx1, Nx2, 3),
-  getQuadSideElements(Nx1, Nx2, 4)
-]
+  baseType, Nx1, Nx2, n_graus_liberdade, fronteira
+)
 
 P, W = legendre(2)
-global τ = 1 * Δτ
-global f = build_f(pts_fronteira, nos_fronteiras, elementos_fronteiras, malha, P, τ)
+τ = 1 * Δτ
+f = build_f(malha, P, τ)
 
 # Construir quais valores estão prescritos. Ideal incluir estrutura de prescrição no objeto Malha
-nodes = (unique(Iterators.flatten(presc)))
+nodes = (unique(Iterators.flatten(fronteira.nos_prescritos)))
 values = repeat([[0.0; 0.0]], size(nodes)[1])
 
 g = build_g(nodes, malha.coords, values)
@@ -849,7 +801,7 @@ infos_primarias = []
 infos_secundarias = []
 
 for iter in 1:n_passos
-  K, F = monta_K_F_global(params, f, pts_fronteira, g, presc, malha, F_def, T)
+  K, F = monta_K_F_global(params, f, g, malha.fronteira.nos_prescritos, malha, F_def, T)
   c = K \ F
 
   # u em t+1
@@ -861,6 +813,28 @@ for iter in 1:n_passos
   global F_def = copy(novo_F)
   global T = copy(novo_T)
   X = map(copy, X_novo)
+  append!(sol_vec, [X])
+
+  infos1, infos2 = calcula_erro(iter, F_def, s1, s2, τ, malha.fronteira.coords_quinas, malha.ne)
+  append!(infos_primarias, [infos1])
+  append!(infos_secundarias, [infos2])
+
+  # Fim do passo atual, prepara pra novo passo
+
+  global novas_coords_quinas = [
+      [X[1][first(malha.fronteira.nos_fronteiras[1])], X[2][first(malha.fronteira.nos_fronteiras[1])]],
+      [X[1][last(malha.fronteira.nos_fronteiras[1])], X[2][last(malha.fronteira.nos_fronteiras[1])]],
+      [X[1][last(malha.fronteira.nos_fronteiras[3])], X[2][last(malha.fronteira.nos_fronteiras[3])]],
+      [X[1][first(malha.fronteira.nos_fronteiras[3])], X[2][first(malha.fronteira.nos_fronteiras[3])]]
+  ]::Vector{Vector{Float64}}
+
+  global fronteira = Fronteira(
+    novas_coords_quinas,
+    malha.fronteira.nos_fronteiras,
+    malha.fronteira.elementos_fronteiras,
+    malha.fronteira.nos_prescritos
+  )
+  
   global malha = Malha(
     malha.base,
     malha.ne, malha.neq,
@@ -868,22 +842,11 @@ for iter in 1:n_passos
     malha.EQ, malha.LG, malha.EQoLG,
     malha.a, malha.b,
     malha.n_dim,
-    malha.Nx
+    malha.Nx,
+    fronteira
   )
-  append!(sol_vec, [X])
-
-  infos1, infos2 = calcula_erro(iter, F_def, s1, s2, τ, pts_fronteira, malha.ne)
-  append!(infos_primarias, [infos1])
-  append!(infos_secundarias, [infos2])
-
-  # Fim do passo atual, prepara pra novo passo
-  global pts_fronteira = [
-    [X[1][first(nos_fronteiras[1])], X[2][first(nos_fronteiras[1])]],
-    [X[1][last(nos_fronteiras[1])], X[2][last(nos_fronteiras[1])]],
-    [X[1][last(nos_fronteiras[3])], X[2][last(nos_fronteiras[3])]],
-    [X[1][first(nos_fronteiras[3])], X[2][first(nos_fronteiras[3])]]
-  ]::Vector{Vector{Float64}}
 
   global τ = Δτ * (iter + 1)
-  global f = build_f(pts_fronteira, nos_fronteiras, elementos_fronteiras, malha, P, τ)
+  global f = build_f(malha, P, τ)
 end
+

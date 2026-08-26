@@ -17,6 +17,7 @@ Valores que definem uma malha.
 - `b::Tuple`: Coordenada do final do intervalo
 - `n_dim::Int64`: Número de dimensões da malha
 - `Nx::Tuple`: Número de subdivisões da malha para cada eixo
+- `fronteira::Fronteira`: Objeto que agrupa informações sobre a fronteira.
 """
 struct Malha
   base
@@ -31,7 +32,106 @@ struct Malha
   b
   n_dim::Int64
   Nx
+  fronteira
 end
+
+"""
+  struct Fronteira
+
+Objetos que agrupam informações sobre a fronteira.
+
+# Campos
+- `coords_quinas::Vector{Vector{Float64}}`: Coordenadas das quinas do quadrilátero
+- `nos_fronteiras::Vector{Vector{Int64}}`: Numeração global dos nós que compõem cada lado do quadrilátero
+- `elementos_fronteiras::Vector{Vector{Int64}}`: Numeração dos elementos que compõem cada lado do quadrilátero
+- `nos_prescritos`: Numeração dos elementos que compõem cada lado do quadrilátero
+"""
+struct Fronteira
+  coords_quinas::Vector{Vector{Float64}}
+  nos_fronteiras::Vector{Vector{Int64}}
+  elementos_fronteiras::Vector{Vector{Int64}}
+  nos_prescritos
+end
+
+function getQuadSideNodes(Nx1::Int64, Nx2::Int64, side::Int64)::Vector{Union{Any, Int64}}
+  nodes = []
+
+  if side == 1
+    nodes = reduce(vcat, 1:Nx1+1)
+  end
+  if side == 2
+    nodes = reduce(vcat, Nx1+1:Nx1+1:(Nx2+1)*(Nx1+1))
+  end
+  if side == 3
+    nodes = reduce(vcat, Nx2*(Nx1+1)+1:(Nx2+1)*(Nx1+1))
+  end
+  if side == 4
+    nodes = reduce(vcat, 1:Nx1+1:Nx2*(Nx1+1)+1)
+  end
+
+  return nodes
+end
+export getQuadSideNodes
+
+function getQuadSideElements(Nx1::Int64, Nx2::Int64, side::Int64)::Vector{Union{Any, Int64}}
+  elements = []
+
+  if side == 1
+    elements = reduce(vcat, 1:Nx1)
+  end
+  if side == 2
+    elements = reduce(vcat, Nx1:Nx1:(Nx2)*(Nx1))
+  end
+  if side == 3
+    elements = reduce(vcat, Nx1*(Nx2-1)+1:1:(Nx2)*(Nx1))
+  end
+  if side == 4
+    elements = reduce(vcat, 1:Nx1:Nx1*(Nx2-1)+1)
+  end
+
+  return elements
+end
+export getQuadSideElements
+
+
+function monta_fronteira_2D_uniforme(a, b, Nx1, Nx2, nos_prescritos = [[], []])
+
+  ponto_inf_esq = [a[1], a[2]]
+  ponto_inf_dir = [b[1], a[2]]
+  ponto_sup_dir = [b[1], b[2]]
+  ponto_sup_esq = [a[1], b[2]]
+
+  coords_quinas = [
+    ponto_inf_esq, 
+    ponto_inf_dir, 
+    ponto_sup_dir, 
+    ponto_sup_esq
+  ]
+
+  nos_fronteiras = [
+    getQuadSideNodes(Nx1, Nx2, 1),
+    getQuadSideNodes(Nx1, Nx2, 2),
+    getQuadSideNodes(Nx1, Nx2, 3),
+    getQuadSideNodes(Nx1, Nx2, 4)
+  ]
+
+  elementos_fronteiras = [
+    getQuadSideElements(Nx1, Nx2, 1),
+    getQuadSideElements(Nx1, Nx2, 2),
+    getQuadSideElements(Nx1, Nx2, 3),
+    getQuadSideElements(Nx1, Nx2, 4)
+  ]
+
+  fronteira = Fronteira(
+    coords_quinas, 
+    nos_fronteiras, 
+    elementos_fronteiras, 
+    nos_prescritos
+  )
+
+  return fronteira
+end
+export monta_fronteira_2D_uniforme
 
 """
     montaLG_geral(Nx1::Int64, Nx2::Int64 = 0)
@@ -86,7 +186,31 @@ Função que monta a matriz de conectividade local/global (LG). Relaciona a nume
 - `Nx2::Int64`: Número de subdivisões da malha no segundo eixo.
 
 # Retorno
-- `LG::Matrix{Int64}`: Matriz de conectividade local/global (LG). Relaciona a numeração local e global das funções ϕ.
+- `LG::Matr
+
+P, W = legendre(2)
+τ = 1 * Δτ
+f = build_f(pts_fronteira, nos_fronteiras, elementos_fronteiras, malha, P, τ)
+
+
+P, W = legendre(2)
+τ = 1 * Δτ
+f = build_f(pts_fronteira, nos_fronteiras, elementos_fronteiras, malha, P, τ)
+
+# Construir quais valores estão prescritos. Ideal incluir estrutura de prescrição no objeto Malha
+nodes = (unique(Iterators.flatten(presc)))
+values = repeat([[0.0; 0.0]], size(nodes)[1])
+
+g = build_g(nodes, malha.coords, values)
+
+h
+# Construir quais valores estão prescritos. Ideal incluir estrutura de prescrição no objeto Malha
+nodes = (unique(Iterators.flatten(presc)))
+values = repeat([[0.0; 0.0]], size(nodes)[1])
+
+g = build_g(nodes, malha.coords, values)
+
+hix{Int64}`: Matriz de conectividade local/global (LG). Relaciona a numeração local e global das funções ϕ.
 
 # Exemplo
 ```@example
@@ -237,7 +361,7 @@ Função que constrói uma malha 2D uniforme.
 - `Nx2::Int64`: Número de subdivisões da malha no segundo eixo. 
 - `a::Tuple`: Coordenada do início do intervalo
 - `b::Tuple`: Coordenada do final do intervalo 
-- `n_dir::Int64`: Número de graus de liberdade em cada nó 
+- `n_graus_liberdade::Int64`: Número de graus de liberdade em cada nó 
 - `nos_prescritos::Vector{Vector{Any}}`: Lista de nós prescritos em cada direção (grau de liberdade). 
 
 # Retorno
@@ -248,8 +372,12 @@ Função que constrói uma malha 2D uniforme.
 
 ```
 """
-function monta_malha_2D_uniforme(baseType, Nx1, Nx2, a::Tuple, b::Tuple, n_dir::Int64,
-    nos_prescritos::Vector{Vector{Any}} = [[], []])::Malha
+function monta_malha_2D_uniforme(baseType, Nx1, Nx2, n_graus_liberdade::Int64,
+    fronteira::Fronteira)::Malha
+
+  a = fronteira.coords_quinas[1]
+  b = fronteira.coords_quinas[3]
+
   # Define o comprimento da base (h₁) e altura (h₂) de cada elemento retangular Ωᵉ
   h₁, h₂ = (b[1] - a[1]) / Nx1, (b[2] - a[2]) / Nx2
   h = (; h₁, h₂)
@@ -264,10 +392,10 @@ function monta_malha_2D_uniforme(baseType, Nx1, Nx2, a::Tuple, b::Tuple, n_dir::
   X₁ = [x₁[i] for i in 1:(Nx1+1), j in 1:(Nx2+1)]
   X₂ = [x₂[j] for i in 1:(Nx1+1), j in 1:(Nx2+1)]
 
-  if (mapreduce(isempty, &, nos_prescritos))
+  if (mapreduce(isempty, &, fronteira.nos_prescritos))
     neq, EQ = montaEQ_geral(Nx1, Nx2)
   else
-    neq, EQ = montaEQ_2D_Mult(Nx1, Nx2, n_dir, nos_prescritos)
+    neq, EQ = montaEQ_2D_Mult(Nx1, Nx2, n_graus_liberdade, fronteira.nos_prescritos)
   end
 
   LG = montaLG_geral(Nx1, Nx2)
@@ -278,7 +406,7 @@ function monta_malha_2D_uniforme(baseType, Nx1, Nx2, a::Tuple, b::Tuple, n_dir::
   Nx = (; Nx1, Nx2)
 
   base = monta_base(baseType, ne)
-  return Malha(base, ne, neq, coords, h, EQ, LG, EQoLG, a, b, n_dim, Nx)
+  return Malha(base, ne, neq, coords, h, EQ, LG, EQoLG, a, b, n_dim, Nx, fronteira)
 end
 
 """
