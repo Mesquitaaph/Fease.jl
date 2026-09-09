@@ -111,6 +111,7 @@ function quadratura_ϕ(base, npg::Int, n_dim::Int) # Acho que esse base posso mu
 
   return ϕP, P, W
 end
+export quadratura_ϕ
 
 """
     quadratura_∇ϕ(base, npg::Int, n_dim::Int)
@@ -150,6 +151,7 @@ function quadratura_∇ϕ(base, npg::Int, n_dim::Int) # Acho que esse base posso
 
   return ∇ϕP, P, W
 end
+export quadratura_∇ϕ
 
 """
     mudanca_variavel_xξ(Xᵉ::Vector, Φξ::Vector, n_dim::Int)
@@ -178,7 +180,6 @@ function mudanca_variavel_xξ(Xᵉ, Φξ, n_dim)
   end
   return [x...]
 end
-
 export mudanca_variavel_xξ
 
 """

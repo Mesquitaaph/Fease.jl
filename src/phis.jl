@@ -87,11 +87,13 @@ Calcula os valores das funções interpoladoras `ϕ` no ponto `P`, unidimensiona
 """
 function ϕ_2D(ξ₁::Float64, ξ₂::Float64)::Vector{Float64}
   # É apenas a definição das ϕ lagrange linear para o caso 2D
+  # Ordem anti-horária
   return [
     (1 - ξ₁) * (1 - ξ₂) / 4,
     (1 + ξ₁) * (1 - ξ₂) / 4,
-    (1 - ξ₁) * (1 + ξ₂) / 4,
-    (1 + ξ₁) * (1 + ξ₂) / 4
+    (1 + ξ₁) * (1 + ξ₂) / 4,
+    (1 - ξ₁) * (1 + ξ₂) / 4
+    
   ]
 end
 
@@ -141,7 +143,8 @@ Definição das ∂ϕ_∂ξ₁ lagrange linear para o caso 2D
 """
 function ∂ϕ_∂ξ₁(ξ₂::Float64)::Vector{Float64}
   # É apenas a definição das ∂ϕ_∂ξ₁ lagrange linear para o caso 2D
-  return [-(1 - ξ₂) / 4, (1 - ξ₂) / 4, -(1 + ξ₂) / 4, (1 + ξ₂) / 4]
+  # Ordem anti-horária
+  return [-(1 - ξ₂) / 4, (1 - ξ₂) / 4, (1 + ξ₂) / 4, -(1 + ξ₂) / 4]
 end
 
 """
@@ -162,7 +165,8 @@ Definição das ∂ϕ_∂ξ₂ lagrange linear para o caso 2D
 """
 function ∂ϕ_∂ξ₂(ξ₁::Float64)::Vector{Float64}
   # É apenas a definição das ∂ϕ_∂ξ₂ lagrange linear para o caso 2D
-  return [-(1 - ξ₁) / 4, -(1 + ξ₁) / 4, (1 - ξ₁) / 4, (1 + ξ₁) / 4]
+  # Ordem anti-horária
+  return [-(1 - ξ₁) / 4, -(1 + ξ₁) / 4, (1 + ξ₁) / 4, (1 - ξ₁) / 4]
 end
 
 """
