@@ -240,7 +240,8 @@ function elementCoords(element, LG, X)
 end
 
 function quadratura_K_local(a::Int64, b::Int64, params::Array{Float64}, indexes, Xᵉ,
-    F_defᵉ, Tᵉ, P::Vector{Float64}, W::Vector{Float64})::Float64
+    F_defᵉ, Tᵉ, ∇ϕξ, P, W)::Float64
+
   quadratura = 0.0
   s1, s2, p, β = params
   r, s = indexes
@@ -249,57 +250,53 @@ function quadratura_K_local(a::Int64, b::Int64, params::Array{Float64}, indexes,
   soma2 = 0.0
   soma3 = 0.0
 
-  n_pts = size(P)[1]
-  for iter1 in 1:n_pts
-    for iter2 in 1:n_pts
-      ξ₁, w₁ = P[iter1], W[iter1]
-      ξ₂, w₂ = P[iter2], W[iter2]
+  n_combs = size(P)[1]
+  for iter in 1:n_combs
+    dx_dξ = [Xᵉ[1] ⋅ ∇ϕξ[1][iter, :] Xᵉ[1] ⋅ ∇ϕξ[2][iter, :]
+             Xᵉ[2] ⋅ ∇ϕξ[1][iter, :] Xᵉ[2] ⋅ ∇ϕξ[2][iter, :]]
 
-      dx_dξ = [∂ξ_to_∂x(Xᵉ[1], 1, ξ₁, ξ₂) ∂ξ_to_∂x(Xᵉ[1], 2, ξ₁, ξ₂)
-               ∂ξ_to_∂x(Xᵉ[2], 1, ξ₁, ξ₂) ∂ξ_to_∂x(Xᵉ[2], 2, ξ₁, ξ₂)]
+    det_J_ξ = abs(simpleDet(dx_dξ))
+    dξ_dx = simpleInv(dx_dξ)
 
-      det_J_ξ = abs(simpleDet(dx_dξ))
-      dξ_dx = simpleInv(dx_dξ)
+    F = F_defᵉ
+    B = F * transpose(F)
+    inv_B = simpleInv(B)
 
-      F = F_defᵉ
-      B = F * transpose(F)
-      inv_B = simpleInv(B)
+    #display(B)
+    #display(inv_B)
 
-      #display(B)
-      #display(inv_B)
+    L = calcL(s1, s2, β, B, inv_B)
 
-      L = calcL(s1, s2, β, B, inv_B)
+    termo1 = 0.0
+    termo2 = 0.0
+    termo3 = 0.0
 
-      termo1 = 0.0
-      termo2 = 0.0
-      termo3 = 0.0
-
-      for i in 1:2
-          for k in 1:2
-              for l in 1:2
-                  termo1 += Tᵉ[r, i] * ∂ϕ(a, k)(ξ₁, ξ₂) * dξ_dx[k, i] * ∂ϕ(b, l)(ξ₁, ξ₂) * dξ_dx[l, s] * det_J_ξ
-                  termo2 += Tᵉ[r, i] * ∂ϕ(a, k)(ξ₁, ξ₂) * dξ_dx[k, s] * ∂ϕ(b, l)(ξ₁, ξ₂) * dξ_dx[l, i] * det_J_ξ
-                  
-                  for j in 1:2
-                      termo3 += L[r, i, s, j] * ∂ϕ(a, k)(ξ₁, ξ₂) * dξ_dx[k, i] * ∂ϕ(b, l)(ξ₁, ξ₂) * dξ_dx[l, j] * det_J_ξ
-                  end
-              end
-          end
-      end
-
-      soma1 += termo1
-      soma2 += termo2
-      soma3 += termo3
-
-      quadratura += (w₁ * w₂) * (termo1 - termo2 + termo3)
+    for i in 1:2
+        for k in 1:2
+            for l in 1:2
+                termo1 += Tᵉ[r, i] * ∂ϕ(a, k)(P[iter]...) * dξ_dx[k, i] * ∂ϕ(b, l)(P[iter]...) * dξ_dx[l, s] * det_J_ξ
+                termo2 += Tᵉ[r, i] * ∂ϕ(a, k)(P[iter]...) * dξ_dx[k, s] * ∂ϕ(b, l)(P[iter]...) * dξ_dx[l, i] * det_J_ξ
+                
+                for j in 1:2
+                    termo3 += L[r, i, s, j] * ∂ϕ(a, k)(P[iter]...) * dξ_dx[k, i] * ∂ϕ(b, l)(P[iter]...) * dξ_dx[l, j] * det_J_ξ
+                end
+            end
+        end
     end
+
+    soma1 += termo1
+    soma2 += termo2
+    soma3 += termo3
+
+    quadratura += reduce(*, W[iter]) * (termo1 - termo2 + termo3)
   end
 
   return quadratura
 end
 
 function monta_K_local(params::Array{Float64}, Xᵉ, F_defᵉ, Tᵉ,
-    P::Vector{Float64}, W::Vector{Float64})::Matrix{Float64}
+    ∇ϕξ, P, W)::Matrix{Float64}
+
   Kᵉ = zeros(8, 8)
 
   for a in 1:4
@@ -310,7 +307,7 @@ function monta_K_local(params::Array{Float64}, Xᵉ, F_defᵉ, Tᵉ,
 
           indexes = [r, s]
           #println("a, b = ", a, b, "\n Indexes (r, s, i, j) = ", indexes)
-          Kᵉ[m, n] += quadratura_K_local(a, b, params, indexes, Xᵉ, F_defᵉ, Tᵉ, P, W)
+          Kᵉ[m, n] += quadratura_K_local(a, b, params, indexes, Xᵉ, F_defᵉ, Tᵉ, ∇ϕξ, P, W)
         end
       end
     end
@@ -321,7 +318,9 @@ end
 
 function quadratura_F_local(
     f::Function, g::Function, presc_map, a::Int64, indexes, boundaries, Xᵉ,
-    Kᵉ::Matrix{Float64}, F_defᵉ, Tᵉ, P::Vector{Float64}, W::Vector{Float64})
+    Kᵉ::Matrix{Float64}, F_defᵉ, Tᵉ, P::Vector{Float64}, W::Vector{Float64}
+    )
+  
   quadratura = 0.0
   r = indexes
 
@@ -458,7 +457,8 @@ function monta_K_F_global(params::Array{Float64}, f::Function, g::Function, malh
   K_global = spzeros(m + 1, m + 1)
   F_global = zeros(m + 1)
 
-  P, W = legendre(2)
+  # neq dessa estrutura só vale quando não tem prescrição, usar neq da malha como na primeira linha
+  base = monta_base(BaseTypes.linearLagrange, malha.ne)
 
   for e in 1:malha.ne
     #println("e = ", e)
@@ -469,9 +469,14 @@ function monta_K_F_global(params::Array{Float64}, f::Function, g::Function, malh
     F_defᵉ = F_def[e]
     Tᵉ = T[e]
 
-    Kᵉ = monta_K_local(params, Xᵉ, F_defᵉ, Tᵉ, P, W)
+    ϕξ, P, W = quadratura_ϕ(base, 2, 2)
+    ∇ϕξ, P, W = quadratura_∇ϕ(base, 2, 2)
+    # Tirar essas 2 linhas pra fora do for ao final, depois de ajustar a monta_F
+    Kᵉ = monta_K_local(params, Xᵉ, F_defᵉ, Tᵉ, ∇ϕξ, P, W)
 
     presc_map = dirichlet_map(malha.fronteira.nos_prescritos, e, malha.LG)
+
+    P, W = legendre(2) # enquanto não ajeitar a monta_F, usar padrão antigo
     Fᵉ = monta_F_local(f, g, presc_map, e_boundaries, Xᵉ, Kᵉ, F_defᵉ, Tᵉ, P, W)
     #display(Fᵉ)
     #println("\n", "Elemento ", e, "\n")
@@ -761,3 +766,5 @@ for iter in 1:n_passos
   global f = build_f(malha, P, τ)
 end
 
+#u = last(sol_vec)
+#display(drawGrid(u[1], u[2], Nx1, Nx2, malha.LG, 1.8, 1.8))
