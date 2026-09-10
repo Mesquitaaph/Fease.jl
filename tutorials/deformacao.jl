@@ -470,20 +470,18 @@ function monta_K_F_global(params::Array{Float64}, f::Function, g::Function, malh
 
     Fᵉ = monta_F_local(
       f, g, presc_map, e_boundaries, Xᵉ, Kᵉ, F_defᵉ, Tᵉ, ∇ϕξ, P, W, paired_P, paired_W)
-    #display(Fᵉ)
-    #println("\n", "Elemento ", e, "\n")
+
     for a in 1:4
       for r in 1:2
         index_i = malha.EQ[:, r][malha.LG][a, e]
+
         for b in 1:4
           for s in 1:2
             index_j = malha.EQ[:, s][malha.LG][b, e]
-            #println("[", index_i, ", ", index_j, "] com ", "a = ", a, ", r = ", r, " b = ", b, ", s = ", s)
             K_global[index_i, index_j] += Kᵉ[2*(a-1)+r, 2*(b-1)+s]
           end
         end
         F_global[index_i] += Fᵉ[2*(a-1)+r]
-        #println("F[", index_i, "] = ", F_global[index_i])
       end
     end
   end
@@ -512,10 +510,16 @@ function calc_F_def_0(malha)
 
   ξ₁ = 0.0
   ξ₂ = 0.0
+  ∇ϕξ = ∇ϕ_geral(ξ₁, ξ₂)
+
   for e in 1:malha.ne
     Xᵉ = elem_coords(malha, e)[2]
-    F_defᵉ = [∂ξ_to_∂x(Xᵉ[1], 1, ξ₁, ξ₂) ∂ξ_to_∂x(Xᵉ[1], 2, ξ₁, ξ₂)
-              ∂ξ_to_∂x(Xᵉ[2], 1, ξ₁, ξ₂) ∂ξ_to_∂x(Xᵉ[2], 2, ξ₁, ξ₂)]
+
+    dx_dξ₁ = mudanca_variavel_xξ(Xᵉ, ∇ϕξ[1], 2)
+    dx_dξ₂ = mudanca_variavel_xξ(Xᵉ, ∇ϕξ[2], 2)
+
+    F_defᵉ = [dx_dξ₁[1] dx_dξ₂[1]
+              dx_dξ₁[2] dx_dξ₂[2]]
 
     append!(F_def_0, [F_defᵉ])
   end
