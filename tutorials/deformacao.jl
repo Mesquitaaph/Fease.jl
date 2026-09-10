@@ -5,70 +5,69 @@ using SparseArrays
 
 # ============== Funções específicas ===============
 function mapper_to_x_generic(Xᵉ_a::Vector{Float64})::Function
-    return (ξ₁::Float64, ξ₂::Float64)-> Xᵉ_a ⋅ map(f -> f(ξ₁, ξ₂), ϕ.(1:length(Xᵉ_a)))
+  return (ξ₁::Float64, ξ₂::Float64)->Xᵉ_a ⋅ map(f -> f(ξ₁, ξ₂), ϕ.(1:length(Xᵉ_a)))
 end
 
 function bound_expr(num_fronteira, malha, P)
   nos_fronteira = malha.fronteira.nos_fronteiras[num_fronteira]
   e_fronteira = malha.fronteira.elementos_fronteiras[num_fronteira]
-  X = malha.coords  
-  
-  coords_nos_front = []    
-    for no in nos_fronteira
-        append!(coords_nos_front, [[X[1][no], X[2][no]]])
+  X = malha.coords
+
+  coords_nos_front = []
+  for no in nos_fronteira
+    append!(coords_nos_front, [[X[1][no], X[2][no]]])
+  end
+
+  for e in e_fronteira
+    Xᵉ = elem_coords(malha, e)[2]
+    ξ_to_x1 = mapper_to_x_generic(Xᵉ[1])
+    ξ_to_x2 = mapper_to_x_generic(Xᵉ[2])
+
+    if (num_fronteira == 1)
+      for ξ in P
+        x1_ξ1 = ξ_to_x1(ξ, -1.0)
+        x2_ξ2 = ξ_to_x2(ξ, -1.0)
+        append!(coords_nos_front, [[x1_ξ1, x2_ξ2]])
+      end
     end
 
-    for e in e_fronteira
-        Xᵉ = elem_coords(malha, e)[2]
-        ξ_to_x1 = mapper_to_x_generic(Xᵉ[1])
-        ξ_to_x2 = mapper_to_x_generic(Xᵉ[2])
-        
-        if(num_fronteira == 1)
-            for ξ in P
-                x1_ξ1 = ξ_to_x1(ξ, -1.0)
-                x2_ξ2 = ξ_to_x2(ξ, -1.0)  
-                append!(coords_nos_front, [[x1_ξ1, x2_ξ2]])
-            end
-        end
-
-        if(num_fronteira == 2)
-            for ξ in P
-                x1_ξ1 = ξ_to_x1(1.0, ξ)
-                x2_ξ2 = ξ_to_x2(1.0, ξ)
-                append!(coords_nos_front, [[x1_ξ1, x2_ξ2]])
-            end
-        end
-
-        if(num_fronteira == 3)
-            for ξ in P
-                x1_ξ1 = ξ_to_x1(ξ, 1.0)
-                x2_ξ2 = ξ_to_x2(ξ, 1.0)
-                append!(coords_nos_front, [[x1_ξ1, x2_ξ2]])
-            end
-        end
-
-        if(num_fronteira == 4)
-            for ξ in P
-                x1_ξ1 = ξ_to_x1(-1.0, ξ)
-                x2_ξ2 = ξ_to_x2(-1.0, ξ)
-                append!(coords_nos_front, [[x1_ξ1, x2_ξ2]])
-            end
-        end
+    if (num_fronteira == 2)
+      for ξ in P
+        x1_ξ1 = ξ_to_x1(1.0, ξ)
+        x2_ξ2 = ξ_to_x2(1.0, ξ)
+        append!(coords_nos_front, [[x1_ξ1, x2_ξ2]])
+      end
     end
 
-    #println(coords_nos_front)
-    
-    expr =  function(coords_no)
-                if(coords_no in coords_nos_front)
-                    return true
-                else
-                    return false
-                end
-            end
+    if (num_fronteira == 3)
+      for ξ in P
+        x1_ξ1 = ξ_to_x1(ξ, 1.0)
+        x2_ξ2 = ξ_to_x2(ξ, 1.0)
+        append!(coords_nos_front, [[x1_ξ1, x2_ξ2]])
+      end
+    end
+
+    if (num_fronteira == 4)
+      for ξ in P
+        x1_ξ1 = ξ_to_x1(-1.0, ξ)
+        x2_ξ2 = ξ_to_x2(-1.0, ξ)
+        append!(coords_nos_front, [[x1_ξ1, x2_ξ2]])
+      end
+    end
+  end
+
+  #println(coords_nos_front)
+
+  expr = function (coords_no)
+    if (coords_no in coords_nos_front)
+      return true
+    else
+      return false
+    end
+  end
 end
 
 function build_f(malha, P, τ::Float64)
-
   coords_quinas = malha.fronteira.coords_quinas
   nos_fronteira = malha.fronteira.nos_fronteiras
   e_fronteira = malha.fronteira.elementos_fronteiras
@@ -170,9 +169,12 @@ function calcL(s1::Float64, s2::Float64, β::Float64, B, inv_B)
     for j in 1:2
       for k in 1:2
         for l in 1:2
-          L[i, j, k, l] = β * delta[k, l] * delta[i, j] +
-                          s1 * (delta[i, k] * B[l, j] + B[i, l] * delta[j, k]) -
-                          s2 * (inv_B[i, k] * delta[l, j] + delta[l, i] * inv_B[k, j])
+          L[i,
+            j,
+            k,
+            l] = β * delta[k, l] * delta[i, j] +
+                 s1 * (delta[i, k] * B[l, j] + B[i, l] * delta[j, k]) -
+                 s2 * (inv_B[i, k] * delta[l, j] + delta[l, i] * inv_B[k, j])
         end
       end
     end
@@ -182,45 +184,43 @@ function calcL(s1::Float64, s2::Float64, β::Float64, B, inv_B)
 end
 
 function ϕ(a::Int64)::Function
-    if a == 1
-        return (ξ₁::Float64, ξ₂::Float64) -> (1.0-ξ₁)*(1.0-ξ₂)/4.0
-        
-    elseif a == 2
-        return (ξ₁::Float64, ξ₂::Float64) -> (1.0+ξ₁)*(1.0-ξ₂)/4.0
-        
-    elseif a == 3
-        return (ξ₁::Float64, ξ₂::Float64) -> (1.0+ξ₁)*(1.0+ξ₂)/4.0
-        
-    elseif a == 4
-        return (ξ₁::Float64, ξ₂::Float64) -> (1.0-ξ₁)*(1.0+ξ₂)/4.0
-        
-    end
+  if a == 1
+    return (ξ₁::Float64, ξ₂::Float64) -> (1.0-ξ₁)*(1.0-ξ₂)/4.0
+
+  elseif a == 2
+    return (ξ₁::Float64, ξ₂::Float64) -> (1.0+ξ₁)*(1.0-ξ₂)/4.0
+
+  elseif a == 3
+    return (ξ₁::Float64, ξ₂::Float64) -> (1.0+ξ₁)*(1.0+ξ₂)/4.0
+
+  elseif a == 4
+    return (ξ₁::Float64, ξ₂::Float64) -> (1.0-ξ₁)*(1.0+ξ₂)/4.0
+  end
 end
 
 function ∂ϕ(a::Int64, variable::Int64)::Function
-    if variable == 1
-        if a == 1
-            return (ξ₁::Float64, ξ₂::Float64) -> -(1.0-ξ₂)/4.0
-        elseif a == 2
-            return (ξ₁::Float64, ξ₂::Float64) ->  (1.0-ξ₂)/4.0
-        elseif a == 3
-            return (ξ₁::Float64, ξ₂::Float64) ->  (1.0+ξ₂)/4.0
-        elseif a == 4
-            return (ξ₁::Float64, ξ₂::Float64) -> -(1.0+ξ₂)/4.0
-        end
-        
-    elseif variable == 2
-        if a == 1
-            return (ξ₁::Float64, ξ₂::Float64) -> -(1.0-ξ₁)/4.0
-        elseif a == 2
-            return (ξ₁::Float64, ξ₂::Float64) -> -(1.0+ξ₁)/4.0
-        elseif a == 3
-            return (ξ₁::Float64, ξ₂::Float64) ->  (1.0+ξ₁)/4.0
-        elseif a == 4
-            return (ξ₁::Float64, ξ₂::Float64) ->  (1.0-ξ₁)/4.0
-        end
-        
+  if variable == 1
+    if a == 1
+      return (ξ₁::Float64, ξ₂::Float64) -> -(1.0-ξ₂)/4.0
+    elseif a == 2
+      return (ξ₁::Float64, ξ₂::Float64) -> (1.0-ξ₂)/4.0
+    elseif a == 3
+      return (ξ₁::Float64, ξ₂::Float64) -> (1.0+ξ₂)/4.0
+    elseif a == 4
+      return (ξ₁::Float64, ξ₂::Float64) -> -(1.0+ξ₂)/4.0
     end
+
+  elseif variable == 2
+    if a == 1
+      return (ξ₁::Float64, ξ₂::Float64) -> -(1.0-ξ₁)/4.0
+    elseif a == 2
+      return (ξ₁::Float64, ξ₂::Float64) -> -(1.0+ξ₁)/4.0
+    elseif a == 3
+      return (ξ₁::Float64, ξ₂::Float64) -> (1.0+ξ₁)/4.0
+    elseif a == 4
+      return (ξ₁::Float64, ξ₂::Float64) -> (1.0-ξ₁)/4.0
+    end
+  end
 end
 
 function ξ_to_x(Xᵉ_a::Vector{Float64}, ξ₁::Float64, ξ₂::Float64)::Float64
@@ -241,7 +241,6 @@ end
 
 function quadratura_K_local(a::Int64, b::Int64, params::Array{Float64}, indexes, Xᵉ,
     F_defᵉ, Tᵉ, ∇ϕξ, P, W)::Float64
-
   quadratura = 0.0
   s1, s2, p, β = params
   r, s = indexes
@@ -252,15 +251,18 @@ function quadratura_K_local(a::Int64, b::Int64, params::Array{Float64}, indexes,
 
   n_combs = size(P)[1]
   for iter in 1:n_combs
-    dx_dξ = [Xᵉ[1] ⋅ ∇ϕξ[1][iter, :] Xᵉ[1] ⋅ ∇ϕξ[2][iter, :]
-             Xᵉ[2] ⋅ ∇ϕξ[1][iter, :] Xᵉ[2] ⋅ ∇ϕξ[2][iter, :]]
+    dx_dξ₁ = mudanca_variavel_xξ(Xᵉ, ∇ϕξ[1][iter, :], 2)
+    dx_dξ₂ = mudanca_variavel_xξ(Xᵉ, ∇ϕξ[2][iter, :], 2)
 
-    det_J_ξ = abs(simpleDet(dx_dξ))
-    dξ_dx = simpleInv(dx_dξ)
+    dx_dξ = [dx_dξ₁[1] dx_dξ₂[1]
+             dx_dξ₁[2] dx_dξ₂[2]]
+
+    det_J_ξ = abs(det(dx_dξ))
+    dξ_dx = inv(dx_dξ)
 
     F = F_defᵉ
     B = F * transpose(F)
-    inv_B = simpleInv(B)
+    inv_B = inv(B)
 
     #display(B)
     #display(inv_B)
@@ -271,17 +273,20 @@ function quadratura_K_local(a::Int64, b::Int64, params::Array{Float64}, indexes,
     termo2 = 0.0
     termo3 = 0.0
 
+    ∇ϕ = ∇ϕ_2D(P[iter]...)
+
     for i in 1:2
-        for k in 1:2
-            for l in 1:2
-                termo1 += Tᵉ[r, i] * ∂ϕ(a, k)(P[iter]...) * dξ_dx[k, i] * ∂ϕ(b, l)(P[iter]...) * dξ_dx[l, s] * det_J_ξ
-                termo2 += Tᵉ[r, i] * ∂ϕ(a, k)(P[iter]...) * dξ_dx[k, s] * ∂ϕ(b, l)(P[iter]...) * dξ_dx[l, i] * det_J_ξ
-                
-                for j in 1:2
-                    termo3 += L[r, i, s, j] * ∂ϕ(a, k)(P[iter]...) * dξ_dx[k, i] * ∂ϕ(b, l)(P[iter]...) * dξ_dx[l, j] * det_J_ξ
-                end
-            end
+      for k in 1:2
+        for l in 1:2
+          termo1 += Tᵉ[r, i] * ∇ϕ[k][a] * dξ_dx[k, i] * ∇ϕ[l][b] * dξ_dx[l, s] * det_J_ξ
+          termo2 += Tᵉ[r, i] * ∇ϕ[k][a] * dξ_dx[k, s] * ∇ϕ[l][b] * dξ_dx[l, i] * det_J_ξ
+
+          for j in 1:2
+            termo3 += L[r, i, s, j] * ∇ϕ[k][a] * dξ_dx[k, i] * ∇ϕ[l][b] * dξ_dx[l, j] *
+                      det_J_ξ
+          end
         end
+      end
     end
 
     soma1 += termo1
@@ -296,7 +301,6 @@ end
 
 function monta_K_local(params::Array{Float64}, Xᵉ, F_defᵉ, Tᵉ,
     ∇ϕξ, P, W)::Matrix{Float64}
-
   Kᵉ = zeros(8, 8)
 
   for a in 1:4
@@ -319,8 +323,7 @@ end
 function quadratura_F_local(
     f::Function, g::Function, presc_map, a::Int64, indexes, boundaries, Xᵉ,
     Kᵉ::Matrix{Float64}, F_defᵉ, Tᵉ, P::Vector{Float64}, W::Vector{Float64}
-    )
-  
+)
   quadratura = 0.0
   r = indexes
 
@@ -343,9 +346,9 @@ function quadratura_F_local(
         x2_ξ2 = ξ_to_x2(ξ, -1.0)
 
         tamanho_lado = sqrt((p2[1] - p1[1])^2 + (p2[2] - p1[2])^2)
-                termo1 += w * ϕ(a)(ξ, -1.0) * ϕ(b)(ξ, -1.0) * f([x1_ξ1, x2_ξ2])[r] * tamanho_lado/2
-                                                                           # fator 2 = tamanho do lado 
-                                                                           # do elemento padrão
+        termo1 += w * ϕ(a)(ξ, -1.0) * ϕ(b)(ξ, -1.0) * f([x1_ξ1, x2_ξ2])[r] * tamanho_lado/2
+        # fator 2 = tamanho do lado 
+        # do elemento padrão
         #println("f1: ", f([x1_ξ1, x2_ξ2])[r])
         # Integral lado 2
         p1 = [Xᵉ[1][2], Xᵉ[2][2]]
@@ -366,7 +369,7 @@ function quadratura_F_local(
         x2_ξ2 = ξ_to_x2(ξ, 1.0)
 
         tamanho_lado = sqrt((p2[1] - p1[1])^2 + (p2[2] - p1[2])^2)
-                termo1 += w * ϕ(a)(ξ, 1.0) * ϕ(b)(ξ, 1.0) * f([x1_ξ1, x2_ξ2])[r] * tamanho_lado/2
+        termo1 += w * ϕ(a)(ξ, 1.0) * ϕ(b)(ξ, 1.0) * f([x1_ξ1, x2_ξ2])[r] * tamanho_lado/2
 
         #println("f3: ", f([x1_ξ1, x2_ξ2])[r])
         # Integral lado 4
@@ -377,7 +380,7 @@ function quadratura_F_local(
         x2_ξ2 = ξ_to_x2(-1.0, ξ)
 
         tamanho_lado = sqrt((p2[1] - p1[1])^2 + (p2[2] - p1[2])^2)
-                termo1 += w * ϕ(a)(-1.0, ξ) * ϕ(b)(-1.0, ξ) * f([x1_ξ1, x2_ξ2])[r] * tamanho_lado/2
+        termo1 += w * ϕ(a)(-1.0, ξ) * ϕ(b)(-1.0, ξ) * f([x1_ξ1, x2_ξ2])[r] * tamanho_lado/2
 
         #println("f4: ", f([x1_ξ1, x2_ξ2])[r])
         quadratura += termo1
@@ -407,7 +410,7 @@ function quadratura_F_local(
 
           termo2 = 0.0
           for k in 1:2
-            termo2 += (w₁ * w₂) * Tᵉ[r,i] * ∂ϕ(a, k)(ξ₁, ξ₂) * dξ_dx[k, i] * det_J_ξ    
+            termo2 += (w₁ * w₂) * Tᵉ[r, i] * ∂ϕ(a, k)(ξ₁, ξ₂) * dξ_dx[k, i] * det_J_ξ
             # println("P; k = ", k, ": ", ∂ϕ(a, k)(ξ₁, ξ₂) * dξ_dx[k, i] * det_J_ξ)
             # println("dPhi = ", ∂ϕ(a, k)(ξ₁, ξ₂))
             # println("dξ_dx = ", dξ_dx[k, i])
@@ -683,7 +686,8 @@ presc_x1 = [1]
 presc_x2 = getQuadSideNodes(Nx1, Nx2, 1)
 nos_prescritos = [presc_x1, presc_x2]
 
-fronteira = monta_fronteira_2D_uniforme(ponto_inf_esq, ponto_sup_dir, Nx1, Nx2, nos_prescritos)
+fronteira = monta_fronteira_2D_uniforme(
+  ponto_inf_esq, ponto_sup_dir, Nx1, Nx2, nos_prescritos)
 
 baseType = BaseTypes.linearLagrange
 n_graus_liberdade = 2
@@ -731,17 +735,22 @@ for iter in 1:n_passos
   X = map(copy, X_novo)
   append!(sol_vec, [X])
 
-  infos1, infos2 = calcula_erro(iter, F_def, s1, s2, τ, malha.fronteira.coords_quinas, malha.ne)
+  infos1,
+  infos2 = calcula_erro(iter, F_def, s1, s2, τ, malha.fronteira.coords_quinas, malha.ne)
   append!(infos_primarias, [infos1])
   append!(infos_secundarias, [infos2])
 
   # Fim do passo atual, prepara pra novo passo
 
   novas_coords_quinas = [
-      [X[1][first(malha.fronteira.nos_fronteiras[1])], X[2][first(malha.fronteira.nos_fronteiras[1])]],
-      [X[1][last(malha.fronteira.nos_fronteiras[1])], X[2][last(malha.fronteira.nos_fronteiras[1])]],
-      [X[1][last(malha.fronteira.nos_fronteiras[3])], X[2][last(malha.fronteira.nos_fronteiras[3])]],
-      [X[1][first(malha.fronteira.nos_fronteiras[3])], X[2][first(malha.fronteira.nos_fronteiras[3])]]
+    [X[1][first(malha.fronteira.nos_fronteiras[1])],
+      X[2][first(malha.fronteira.nos_fronteiras[1])]],
+    [
+      X[1][last(malha.fronteira.nos_fronteiras[1])], X[2][last(malha.fronteira.nos_fronteiras[1])]],
+    [
+      X[1][last(malha.fronteira.nos_fronteiras[3])], X[2][last(malha.fronteira.nos_fronteiras[3])]],
+    [X[1][first(malha.fronteira.nos_fronteiras[3])],
+      X[2][first(malha.fronteira.nos_fronteiras[3])]]
   ]::Vector{Vector{Float64}}
 
   global fronteira = Fronteira(
@@ -750,7 +759,7 @@ for iter in 1:n_passos
     malha.fronteira.elementos_fronteiras,
     malha.fronteira.nos_prescritos
   )
-  
+
   global malha = Malha(
     malha.base,
     malha.ne, malha.neq,

@@ -92,9 +92,7 @@ function ϕ_2D(ξ₁::Float64, ξ₂::Float64)::Vector{Float64}
     (1 - ξ₁) * (1 - ξ₂) / 4,
     (1 + ξ₁) * (1 - ξ₂) / 4,
     (1 + ξ₁) * (1 + ξ₂) / 4,
-    (1 - ξ₁) * (1 + ξ₂) / 4
-    
-  ]
+    (1 - ξ₁) * (1 + ξ₂) / 4]
 end
 
 export ϕ_2D
@@ -124,6 +122,7 @@ function ∇ϕ_1D(P...)
   ]
   return (; dphis)
 end
+export ∇ϕ_1D
 
 """
     ∂ϕ_∂ξ₁(ξ₂::Float64)::Vector{Float64}
@@ -190,6 +189,7 @@ function ∇ϕ_2D(ξ₁::Float64, ξ₂::Float64)
   # Retorna as duas como um gradiente, de fato
   return (∂ϕ_∂ξ₁(ξ₂), ∂ϕ_∂ξ₂(ξ₁))
 end
+export ∇ϕ_2D
 
 """
     ∇ϕ_geral(P...)
@@ -219,3 +219,4 @@ function ∇ϕ_geral(P...)
     return error("Dimensão não implementada")
   end
 end
+export ∇ϕ_geral
