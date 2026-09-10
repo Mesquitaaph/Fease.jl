@@ -264,9 +264,6 @@ function quadratura_K_local(a::Int64, b::Int64, params::Array{Float64}, indexes,
     B = F * transpose(F)
     inv_B = inv(B)
 
-    #display(B)
-    #display(inv_B)
-
     L = calcL(s1, s2, β, B, inv_B)
 
     termo1 = 0.0
@@ -310,7 +307,6 @@ function monta_K_local(params::Array{Float64}, Xᵉ, F_defᵉ, Tᵉ,
           m, n = (2 * (a - 1) + r, 2 * (b - 1) + s)
 
           indexes = [r, s]
-          #println("a, b = ", a, b, "\n Indexes (r, s, i, j) = ", indexes)
           Kᵉ[m, n] += quadratura_K_local(a, b, params, indexes, Xᵉ, F_defᵉ, Tᵉ, ∇ϕξ, P, W)
         end
       end
@@ -322,19 +318,13 @@ end
 
 function quadratura_F_local(
     f::Function, g::Function, presc_map, a::Int64, indexes, boundaries, Xᵉ,
-    Kᵉ::Matrix{Float64}, F_defᵉ, Tᵉ, P::Vector{Float64}, W::Vector{Float64}
+    Kᵉ::Matrix{Float64}, F_defᵉ, Tᵉ, ∇ϕξ, P::Vector{Float64}, W::Vector{Float64}, paired_P, paired_W
 )
   quadratura = 0.0
   r = indexes
 
-  ξ_to_x1 = mapper_to_x_generic(Xᵉ[1])
-  ξ_to_x2 = mapper_to_x_generic(Xᵉ[2])
-
   if (length(boundaries) != 0)
     for b in 1:4
-      ponto = (Xᵉ[1][b], Xᵉ[2][b])
-      #display(f(ponto))
-
       for (ξ, w) in zip(P, W)
         termo1 = 0.0
 
@@ -342,49 +332,53 @@ function quadratura_F_local(
         p1 = [Xᵉ[1][1], Xᵉ[2][1]]
         p2 = [Xᵉ[1][2], Xᵉ[2][2]]
 
-        x1_ξ1 = ξ_to_x1(ξ, -1.0)
-        x2_ξ2 = ξ_to_x2(ξ, -1.0)
+        x1_ξ1 = Xᵉ[1] ⋅ ϕ_2D(ξ, -1.0)
+        x2_ξ2 = Xᵉ[2] ⋅ ϕ_2D(ξ, -1.0)
 
         tamanho_lado = sqrt((p2[1] - p1[1])^2 + (p2[2] - p1[2])^2)
-        termo1 += w * ϕ(a)(ξ, -1.0) * ϕ(b)(ξ, -1.0) * f([x1_ξ1, x2_ξ2])[r] * tamanho_lado/2
+        ϕ = ϕ_2D(ξ, -1.0)
+
+        termo1 += w * ϕ[a] * ϕ[b] * f([x1_ξ1, x2_ξ2])[r] * tamanho_lado/2
         # fator 2 = tamanho do lado 
         # do elemento padrão
-        #println("f1: ", f([x1_ξ1, x2_ξ2])[r])
+
         # Integral lado 2
         p1 = [Xᵉ[1][2], Xᵉ[2][2]]
         p2 = [Xᵉ[1][3], Xᵉ[2][3]]
 
-        x1_ξ1 = ξ_to_x1(1.0, ξ)
-        x2_ξ2 = ξ_to_x2(1.0, ξ)
+        x1_ξ1 = Xᵉ[1] ⋅ ϕ_2D(1.0, ξ)
+        x2_ξ2 = Xᵉ[2] ⋅ ϕ_2D(1.0, ξ)
 
         tamanho_lado = sqrt((p2[1] - p1[1])^2 + (p2[2] - p1[2])^2)
-        termo1 += w * ϕ(a)(1.0, ξ) * ϕ(b)(1.0, ξ) * f([x1_ξ1, x2_ξ2])[r] * tamanho_lado/2
+        ϕ = ϕ_2D(1.0, ξ)
 
-        #println("f2: ", f([x1_ξ1, x2_ξ2])[r])
+        termo1 += w * ϕ[a] * ϕ[b] * f([x1_ξ1, x2_ξ2])[r] * tamanho_lado/2
+
         # Integral lado 3
         p1 = [Xᵉ[1][3], Xᵉ[2][3]]
         p2 = [Xᵉ[1][4], Xᵉ[2][4]]
 
-        x1_ξ1 = ξ_to_x1(ξ, 1.0)
-        x2_ξ2 = ξ_to_x2(ξ, 1.0)
+        x1_ξ1 = Xᵉ[1] ⋅ ϕ_2D(ξ, 1.0)
+        x2_ξ2 = Xᵉ[2] ⋅ ϕ_2D(ξ, 1.0)
 
         tamanho_lado = sqrt((p2[1] - p1[1])^2 + (p2[2] - p1[2])^2)
-        termo1 += w * ϕ(a)(ξ, 1.0) * ϕ(b)(ξ, 1.0) * f([x1_ξ1, x2_ξ2])[r] * tamanho_lado/2
+        ϕ = ϕ_2D(ξ, 1.0)
 
-        #println("f3: ", f([x1_ξ1, x2_ξ2])[r])
+        termo1 += w * ϕ[a] * ϕ[b] * f([x1_ξ1, x2_ξ2])[r] * tamanho_lado/2
+
         # Integral lado 4
         p1 = [Xᵉ[1][1], Xᵉ[2][1]]
         p2 = [Xᵉ[1][4], Xᵉ[2][4]]
 
-        x1_ξ1 = ξ_to_x1(-1.0, ξ)
-        x2_ξ2 = ξ_to_x2(-1.0, ξ)
+        x1_ξ1 = Xᵉ[1] ⋅ ϕ_2D(-1.0, ξ)
+        x2_ξ2 = Xᵉ[2] ⋅ ϕ_2D(-1.0, ξ)
 
         tamanho_lado = sqrt((p2[1] - p1[1])^2 + (p2[2] - p1[2])^2)
-        termo1 += w * ϕ(a)(-1.0, ξ) * ϕ(b)(-1.0, ξ) * f([x1_ξ1, x2_ξ2])[r] * tamanho_lado/2
+        ϕ = ϕ_2D(-1.0, ξ)
 
-        #println("f4: ", f([x1_ξ1, x2_ξ2])[r])
+        termo1 += w * ϕ[a] * ϕ[b] * f([x1_ξ1, x2_ξ2])[r] * tamanho_lado/2
+
         quadratura += termo1
-        #println("quad = ", quadratura, " a = ", a, " b = ", b)
       end
     end
   end
@@ -392,35 +386,29 @@ function quadratura_F_local(
   prescrito = presc_map[r][a]
 
   if (!prescrito)
-    n_pts = size(P)[1]
+    n_combs = size(paired_P)[1]
     for i in 1:2
       soma = 0.0
       somaP = 0.0
-      for iter1 in 1:n_pts
-        for iter2 in 1:n_pts
-          ξ₁, w₁ = P[iter1], W[iter1]
-          ξ₂, w₂ = P[iter2], W[iter2]
+      for iter in 1:n_combs
+        dx_dξ₁ = mudanca_variavel_xξ(Xᵉ, ∇ϕξ[1][iter, :], 2)
+        dx_dξ₂ = mudanca_variavel_xξ(Xᵉ, ∇ϕξ[2][iter, :], 2)
 
-          dx_dξ = [∂ξ_to_∂x(Xᵉ[1], 1, ξ₁, ξ₂) ∂ξ_to_∂x(Xᵉ[1], 2, ξ₁, ξ₂)
-                   ∂ξ_to_∂x(Xᵉ[2], 1, ξ₁, ξ₂) ∂ξ_to_∂x(Xᵉ[2], 2, ξ₁, ξ₂)]
+        dx_dξ = [dx_dξ₁[1] dx_dξ₂[1]
+                 dx_dξ₁[2] dx_dξ₂[2]]
 
-          #display(dx_dξ)
-          det_J_ξ = abs(simpleDet(dx_dξ))
-          dξ_dx = simpleInv(dx_dξ)
+        det_J_ξ = abs(det(dx_dξ))
+        dξ_dx = inv(dx_dξ)
 
-          termo2 = 0.0
-          for k in 1:2
-            termo2 += (w₁ * w₂) * Tᵉ[r, i] * ∂ϕ(a, k)(ξ₁, ξ₂) * dξ_dx[k, i] * det_J_ξ
-            # println("P; k = ", k, ": ", ∂ϕ(a, k)(ξ₁, ξ₂) * dξ_dx[k, i] * det_J_ξ)
-            # println("dPhi = ", ∂ϕ(a, k)(ξ₁, ξ₂))
-            # println("dξ_dx = ", dξ_dx[k, i])
-            # println("det_J_ξ = ", det_J_ξ)
-            # println("")
-            somaP += ∂ϕ(a, k)(ξ₁, ξ₂) * dξ_dx[k, i] * det_J_ξ
-          end
-          soma += termo2
-          quadratura -= termo2
+        ∇ϕ = ∇ϕ_2D(paired_P[iter]...)
+        termo2 = 0.0
+        for k in 1:2
+          termo2 += reduce(*, paired_W[iter]) * Tᵉ[r, i] * ∇ϕ[k][a] * dξ_dx[k, i] * det_J_ξ
+          somaP += ∇ϕ[k][a] * dξ_dx[k, i] * det_J_ξ
         end
+
+        soma += termo2
+        quadratura -= termo2
       end
     end
   end
@@ -437,8 +425,8 @@ function quadratura_F_local(
   return quadratura
 end
 
-function monta_F_local(f::Function, g, presc_map, boundaries, Xᵉ, Kᵉ, F_defᵉ, Tᵉ,
-    P::Vector{Float64}, W::Vector{Float64})::Vector{Float64}
+function monta_F_local(f::Function, g, presc_map, boundaries, Xᵉ, Kᵉ, F_defᵉ, Tᵉ, ∇ϕξ,
+    P::Vector{Float64}, W::Vector{Float64}, paired_P, paired_W)::Vector{Float64}
   F_local = zeros(8)
 
   for a in 1:4
@@ -447,7 +435,8 @@ function monta_F_local(f::Function, g, presc_map, boundaries, Xᵉ, Kᵉ, F_def�
 
       indexes = r
       F_local[m] += quadratura_F_local(
-        f, g, presc_map, a, indexes, boundaries, Xᵉ, Kᵉ, F_defᵉ, Tᵉ, P, W)
+        f, g, presc_map, a, indexes, boundaries, Xᵉ, Kᵉ,
+        F_defᵉ, Tᵉ, ∇ϕξ, P, W, paired_P, paired_W)
     end
   end
 
@@ -463,6 +452,9 @@ function monta_K_F_global(params::Array{Float64}, f::Function, g::Function, malh
   # neq dessa estrutura só vale quando não tem prescrição, usar neq da malha como na primeira linha
   base = monta_base(BaseTypes.linearLagrange, malha.ne)
 
+  ∇ϕξ, paired_P, paired_W = quadratura_∇ϕ(base, 2, 2)
+  P, W = legendre(2)
+
   for e in 1:malha.ne
     #println("e = ", e)
     e_boundaries = getBoundariesOfElement(e, malha.Nx[1], malha.Nx[2], malha.LG)
@@ -471,16 +463,13 @@ function monta_K_F_global(params::Array{Float64}, f::Function, g::Function, malh
 
     F_defᵉ = F_def[e]
     Tᵉ = T[e]
-
-    ϕξ, P, W = quadratura_ϕ(base, 2, 2)
-    ∇ϕξ, P, W = quadratura_∇ϕ(base, 2, 2)
     # Tirar essas 2 linhas pra fora do for ao final, depois de ajustar a monta_F
-    Kᵉ = monta_K_local(params, Xᵉ, F_defᵉ, Tᵉ, ∇ϕξ, P, W)
+    Kᵉ = monta_K_local(params, Xᵉ, F_defᵉ, Tᵉ, ∇ϕξ, paired_P, paired_W)
 
     presc_map = dirichlet_map(malha.fronteira.nos_prescritos, e, malha.LG)
 
-    P, W = legendre(2) # enquanto não ajeitar a monta_F, usar padrão antigo
-    Fᵉ = monta_F_local(f, g, presc_map, e_boundaries, Xᵉ, Kᵉ, F_defᵉ, Tᵉ, P, W)
+    Fᵉ = monta_F_local(
+      f, g, presc_map, e_boundaries, Xᵉ, Kᵉ, F_defᵉ, Tᵉ, ∇ϕξ, P, W, paired_P, paired_W)
     #display(Fᵉ)
     #println("\n", "Elemento ", e, "\n")
     for a in 1:4
