@@ -4,9 +4,6 @@ using GaussQuadrature
 using SparseArrays
 
 # ============== Funções específicas ===============
-function mapper_to_x_generic(Xᵉ_a::Vector{Float64})::Function
-  return (ξ₁::Float64, ξ₂::Float64)->Xᵉ_a ⋅ map(f -> f(ξ₁, ξ₂), ϕ.(1:length(Xᵉ_a)))
-end
 
 function bound_expr(num_fronteira, malha, P)
   nos_fronteira = malha.fronteira.nos_fronteiras[num_fronteira]
@@ -20,37 +17,35 @@ function bound_expr(num_fronteira, malha, P)
 
   for e in e_fronteira
     Xᵉ = elem_coords(malha, e)[2]
-    ξ_to_x1 = mapper_to_x_generic(Xᵉ[1])
-    ξ_to_x2 = mapper_to_x_generic(Xᵉ[2])
 
     if (num_fronteira == 1)
       for ξ in P
-        x1_ξ1 = ξ_to_x1(ξ, -1.0)
-        x2_ξ2 = ξ_to_x2(ξ, -1.0)
+        x1_ξ1 = Xᵉ[1] ⋅ ϕ_2D(ξ, -1.0)
+        x2_ξ2 = Xᵉ[2] ⋅ ϕ_2D(ξ, -1.0)
         append!(coords_nos_front, [[x1_ξ1, x2_ξ2]])
       end
     end
 
     if (num_fronteira == 2)
       for ξ in P
-        x1_ξ1 = ξ_to_x1(1.0, ξ)
-        x2_ξ2 = ξ_to_x2(1.0, ξ)
+        x1_ξ1 = Xᵉ[1] ⋅ ϕ_2D(1.0, ξ)
+        x2_ξ2 = Xᵉ[2] ⋅ ϕ_2D(1.0, ξ)
         append!(coords_nos_front, [[x1_ξ1, x2_ξ2]])
       end
     end
 
     if (num_fronteira == 3)
       for ξ in P
-        x1_ξ1 = ξ_to_x1(ξ, 1.0)
-        x2_ξ2 = ξ_to_x2(ξ, 1.0)
+        x1_ξ1 = Xᵉ[1] ⋅ ϕ_2D(ξ, 1.0)
+        x2_ξ2 = Xᵉ[2] ⋅ ϕ_2D(ξ, 1.0)
         append!(coords_nos_front, [[x1_ξ1, x2_ξ2]])
       end
     end
 
     if (num_fronteira == 4)
       for ξ in P
-        x1_ξ1 = ξ_to_x1(-1.0, ξ)
-        x2_ξ2 = ξ_to_x2(-1.0, ξ)
+        x1_ξ1 = Xᵉ[1] ⋅ ϕ_2D(-1.0, ξ)
+        x2_ξ2 = Xᵉ[2] ⋅ ϕ_2D(-1.0, ξ)
         append!(coords_nos_front, [[x1_ξ1, x2_ξ2]])
       end
     end
@@ -150,17 +145,6 @@ function dirichlet_map(presc, e, LG)
   return map
 end
 
-function simpleDet(M)
-  return (M[1, 1] * M[2, 2]) - (M[1, 2] * M[2, 1])
-end
-
-function simpleInv(M)
-  det_M = abs(simpleDet(M))
-  inv_M = 1 / det_M * [M[2, 2] -M[1, 2]
-                       -M[2, 1] M[1, 1]]
-  return inv_M
-end
-
 function calcL(s1::Float64, s2::Float64, β::Float64, B, inv_B)
   L = zeros(2, 2, 2, 2)
   delta = 1.0I
@@ -181,62 +165,6 @@ function calcL(s1::Float64, s2::Float64, β::Float64, B, inv_B)
   end
 
   return L
-end
-
-function ϕ(a::Int64)::Function
-  if a == 1
-    return (ξ₁::Float64, ξ₂::Float64) -> (1.0-ξ₁)*(1.0-ξ₂)/4.0
-
-  elseif a == 2
-    return (ξ₁::Float64, ξ₂::Float64) -> (1.0+ξ₁)*(1.0-ξ₂)/4.0
-
-  elseif a == 3
-    return (ξ₁::Float64, ξ₂::Float64) -> (1.0+ξ₁)*(1.0+ξ₂)/4.0
-
-  elseif a == 4
-    return (ξ₁::Float64, ξ₂::Float64) -> (1.0-ξ₁)*(1.0+ξ₂)/4.0
-  end
-end
-
-function ∂ϕ(a::Int64, variable::Int64)::Function
-  if variable == 1
-    if a == 1
-      return (ξ₁::Float64, ξ₂::Float64) -> -(1.0-ξ₂)/4.0
-    elseif a == 2
-      return (ξ₁::Float64, ξ₂::Float64) -> (1.0-ξ₂)/4.0
-    elseif a == 3
-      return (ξ₁::Float64, ξ₂::Float64) -> (1.0+ξ₂)/4.0
-    elseif a == 4
-      return (ξ₁::Float64, ξ₂::Float64) -> -(1.0+ξ₂)/4.0
-    end
-
-  elseif variable == 2
-    if a == 1
-      return (ξ₁::Float64, ξ₂::Float64) -> -(1.0-ξ₁)/4.0
-    elseif a == 2
-      return (ξ₁::Float64, ξ₂::Float64) -> -(1.0+ξ₁)/4.0
-    elseif a == 3
-      return (ξ₁::Float64, ξ₂::Float64) -> (1.0+ξ₁)/4.0
-    elseif a == 4
-      return (ξ₁::Float64, ξ₂::Float64) -> (1.0-ξ₁)/4.0
-    end
-  end
-end
-
-function ξ_to_x(Xᵉ_a::Vector{Float64}, ξ₁::Float64, ξ₂::Float64)::Float64
-  ϕ_ξ = map(func -> func(ξ₁, ξ₂), ϕ.(1:length(Xᵉ_a)))
-
-  return (Xᵉ_a ⋅ ϕ_ξ)
-end
-
-function ∂ξ_to_∂x(Xᵉ_a::Vector{Float64}, variable::Int64, ξ₁::Float64, ξ₂::Float64)::Float64
-  dϕ_dξ = map(func -> func(ξ₁, ξ₂), ∂ϕ.(1:length(Xᵉ_a), variable))
-
-  return (Xᵉ_a ⋅ dϕ_dξ)
-end
-
-function elementCoords(element, LG, X)
-  return [X[1][LG[:, element]];; X[2][LG[:, element]]]
 end
 
 function quadratura_K_local(a::Int64, b::Int64, params::Array{Float64}, indexes, Xᵉ,
@@ -537,6 +465,8 @@ function grad_u(malha_deformação, F_def_0)
     ξ₂ = 0.0
 
     # quadratura_∇ϕ mas com P = vetor nulo e W = vetor unitário
+    # Como é sempre o mesmo ponto, não precisaria calcular 4 vezes.
+    # Mas estou fazendo esta estrutura pra reaproveitar o método de avaliação da ∇ϕ_geral
     P, W = [repeat([(0.0, 0.0)], 4), repeat([(1.0, 1.0)], 4)]
     n_funcs = malha.base.nB
     n_dim = malha.n_dim
@@ -553,8 +483,7 @@ function grad_u(malha_deformação, F_def_0)
       ∇ϕP = (∇ϕP..., ∂ϕᵢP)
     end
 
-    # display(∇ϕP[1][1, :])
-    # display(Δuᵉ)
+    # Tanto faz a linha, já que são todas iguais
     du_dξ₁ = mudanca_variavel_xξ(Δuᵉ, ∇ϕP[1][1, :], 2)
     du_dξ₂ = mudanca_variavel_xξ(Δuᵉ, ∇ϕP[2][1, :], 2)
 
@@ -598,12 +527,12 @@ function atualiza_ALI(malha, X_novo, F_def, T)
   for e in 1:malha.ne
     F = F_def[e]
 
-    det_J_ξ = abs(simpleDet(F))
-    dξ_dx = simpleInv(F)
+    det_J_ξ = abs(det(F))
+    dξ_dx = inv(F)
 
     Hᵉ = H[e]
     B = F * transpose(F)
-    inv_B = simpleInv(B)
+    inv_B = inv(B)
 
     L = calcL(s1, s2, β, B, inv_B)
     Tᵉ = copy(T[e])
@@ -641,7 +570,7 @@ function calcula_erro(passo, F_def, s1, s2, τ, pts_fronteira, ne)
   sum_det = 0.0
 
   for F in F_def
-    sum_det += simpleDet(F)
+    sum_det += det(F)
     sum_F11 += F[1, 1]
     max_F11 = (F[1, 1] > max_F11) ? F[1, 1] : max_F11
     min_F11 = (F[1, 1] < min_F11) ? F[1, 1] : min_F11
