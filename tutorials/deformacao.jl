@@ -527,25 +527,45 @@ function calc_F_def_0(malha)
   return F_def_0
 end
 
-function grad_u(Δu, malha, F_def_0)
+function grad_u(malha_deformação, F_def_0)
   H = []
 
   for e in 1:malha.ne
-    Δuᵉ = elementCoords(e, malha.LG, Δu)
+    Δuᵉ = elem_coords(malha_deformação, e)[2]
 
     ξ₁ = 0.0
     ξ₂ = 0.0
 
+    # quadratura_∇ϕ mas com P = vetor nulo e W = vetor unitário
+    P, W = [repeat([(0.0, 0.0)], 4), repeat([(1.0, 1.0)], 4)]
+    n_funcs = malha.base.nB
+    n_dim = malha.n_dim
+    npg = 2
+
+    ∇ϕP = ()
+    for d in 1:n_dim
+      ∂ϕᵢP = zeros(npg^n_dim, n_funcs^n_dim)
+
+      # Para todos os pontos de Gauss, avalia as ∂ϕᵢ locais (i = d)
+      for ξ in 1:(npg^n_dim)
+        ∂ϕᵢP[ξ, :] .= ∇ϕ_geral(P[ξ]...)[d]
+      end
+      ∇ϕP = (∇ϕP..., ∂ϕᵢP)
+    end
+
+    # display(∇ϕP[1][1, :])
+    # display(Δuᵉ)
+    du_dξ₁ = mudanca_variavel_xξ(Δuᵉ, ∇ϕP[1][1, :], 2)
+    du_dξ₂ = mudanca_variavel_xξ(Δuᵉ, ∇ϕP[2][1, :], 2)
+
     # reutilizando a função ∂ξ_to_∂x, mas idealmente o nome seria ∂ξ_to_∂u... ou "interpolate <something>"
-    du_dξ = [∂ξ_to_∂x(Δuᵉ[:, 1], 1, ξ₁, ξ₂) ∂ξ_to_∂x(Δuᵉ[:, 1], 2, ξ₁, ξ₂)
-             ∂ξ_to_∂x(Δuᵉ[:, 2], 1, ξ₁, ξ₂) ∂ξ_to_∂x(Δuᵉ[:, 2], 2, ξ₁, ξ₂)]
+    du_dξ = [du_dξ₁[1] du_dξ₂[1]
+             du_dξ₁[2] du_dξ₂[2]]
 
-    dx_dξ = F_def_0[e]
-
-    #display("du_dξ = ")
     #display(du_dξ)
-    det_J_ξ = abs(simpleDet(dx_dξ))
-    dξ_dx = simpleInv(dx_dξ)
+    dx_dξ = F_def_0[e]
+    det_J_ξ = abs(det(dx_dξ))
+    dξ_dx = inv(dx_dξ)
 
     Hᵉ = du_dξ * dξ_dx
 
@@ -561,9 +581,19 @@ function atualiza_ALI(malha, X_novo, F_def, T)
   T_t_mais_1 = []
 
   Δu = X_novo .- malha.coords
+  malha_deformação = Malha(
+    malha.base,
+    malha.ne, malha.neq,
+    Tuple(Δu), malha.dx,
+    malha.EQ, malha.LG, malha.EQoLG,
+    malha.a, malha.b,
+    malha.n_dim,
+    malha.Nx,
+    fronteira
+  )
 
   F_def_0 = calc_F_def_0(malha)
-  H = grad_u(Δu, malha, F_def_0)
+  H = grad_u(malha_deformação, F_def_0)
 
   for e in 1:malha.ne
     F = F_def[e]
@@ -736,13 +766,16 @@ for iter in 1:n_passos
   # Fim do passo atual, prepara pra novo passo
 
   novas_coords_quinas = [
-    [X[1][first(malha.fronteira.nos_fronteiras[1])],
+    [ X[1][first(malha.fronteira.nos_fronteiras[1])],
       X[2][first(malha.fronteira.nos_fronteiras[1])]],
-    [
-      X[1][last(malha.fronteira.nos_fronteiras[1])], X[2][last(malha.fronteira.nos_fronteiras[1])]],
-    [
-      X[1][last(malha.fronteira.nos_fronteiras[3])], X[2][last(malha.fronteira.nos_fronteiras[3])]],
-    [X[1][first(malha.fronteira.nos_fronteiras[3])],
+
+    [ X[1][last(malha.fronteira.nos_fronteiras[1])], 
+      X[2][last(malha.fronteira.nos_fronteiras[1])]],
+
+    [ X[1][last(malha.fronteira.nos_fronteiras[3])], 
+      X[2][last(malha.fronteira.nos_fronteiras[3])]],
+
+    [ X[1][first(malha.fronteira.nos_fronteiras[3])],
       X[2][first(malha.fronteira.nos_fronteiras[3])]]
   ]::Vector{Vector{Float64}}
 
