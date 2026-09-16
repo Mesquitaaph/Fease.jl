@@ -106,3 +106,48 @@ function drawGridFromFile(elemX, elemY, coordsFileName, LGFileName, xWindowLim, 
   return drawGrid(X, Y, elemX, elemY, transpose(LG), xWindowLim, yWindowLim)
 end
 export drawGridFromFile
+
+function calcula_erro(passo, F_def, s1, s2, τ, pts_fronteira, ne)
+  max_F11 = 0.0
+  min_F11 = 2.0
+  sum_F11 = 0.0
+  sum_det = 0.0
+
+  for F in F_def
+    sum_det += det(F)
+    sum_F11 += F[1, 1]
+    max_F11 = (F[1, 1] > max_F11) ? F[1, 1] : max_F11
+    min_F11 = (F[1, 1] < min_F11) ? F[1, 1] : min_F11
+  end
+
+  λ₁_analitico = (1.0 - τ^2 * (1.0 / (s1 - s2)^2))^(-1.0 / 4)
+  k = sqrt(λ₁_analitico^4 - 1.0)
+
+  p1 = pts_fronteira[1]
+  p2 = pts_fronteira[2]
+  p4 = pts_fronteira[4]
+
+  OA_num = p2[1] - p1[1]
+  OB_num = sqrt((p4[1]^2 - p1[1]^2) + (p4[2]^2 - p1[2]^2))
+
+  OA_analitico = λ₁_analitico^2
+  #F_11 médio
+  λ₁_numerico = sum_F11 / ne
+  det_medio = sum_det / ne
+
+  erro_relativo_percentual = 100 * abs((λ₁_numerico - λ₁_analitico) / λ₁_analitico)
+  razao_segmentos = 100 * abs((OA_num - OB_num) / OA_num)
+  infos_principais = [passo,
+    λ₁_analitico,
+    λ₁_numerico,
+    min_F11,
+    max_F11,
+    det_medio,
+    erro_relativo_percentual,
+    razao_segmentos]::Vector{Float64}
+
+  infos_secundarias = [k, OA_analitico]
+
+  return infos_principais, infos_secundarias
+end
+export calcula_erro

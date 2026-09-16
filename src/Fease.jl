@@ -44,4 +44,6 @@ include("plots.jl")
 
 include("testes/include_testes.jl")
 
+include("ali.jl")
+
 end
