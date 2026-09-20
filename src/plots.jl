@@ -30,7 +30,7 @@ function plot_solucao_aproximada(c::Array, malha::Malha, gif::Bool = false)
   ST = (:path, :surface)
 
   # create a plot with 3 subplots and a custom layout
-  p = plot(X..., uh, st = ST[n_dim])
+  p = Plots.plot(X..., uh, st = ST[n_dim])
   if !gif
     return display(p)
   end
@@ -39,7 +39,7 @@ function plot_solucao_aproximada(c::Array, malha::Malha, gif::Bool = false)
   @gif for i in range(0, stop = 360, length = n)
 
     # induce a slight oscillating camera angle sweep, in degrees (azimuth, altitude)
-    plot!(p[1], camera = (i, 40))
+    Plots.plot!(p[1], camera = (i, 40))
     display(p)
   end
 end

@@ -1,4 +1,5 @@
 using Fease
+using Plots
 
 function caso_1D()
   # Define o número de sub-intervalos no eixo horizontal e vertical, respectivamente.
@@ -55,8 +56,8 @@ function caso_1D()
   convergence_test!(E, NE, n_dim, monta_malha, pseudo_a, f, u)
 
   # Plota o resultado do estudo
-  plot(H, E, xaxis = :log10, yaxis = :log10, label = "Erro")
-  return plot!(H, H .^ monta_base(baseType, 2).nB, xaxis = :log10,
+  Plots.plot(H, E, xaxis = :log10, yaxis = :log10, label = "Erro")
+  return Plots.plot!(H, H .^ monta_base(baseType, 2).nB, xaxis = :log10,
     yaxis = :log10, label = "H²")
 end
 
