@@ -100,14 +100,14 @@ Avalia cada uma das funções `ϕ` em cada um dos `npg` pontos de Gauss-Legendre
 
 ```
 """
-function quadratura_ϕ(base, npg::Int, n_dim::Int) # Acho que esse base posso mudar para n_funcs
+function quadratura_ϕ(base, npg::Int, n_dim::Int)
     P, W = quadratura_gauss(npg, n_dim)
     n_funcs = base.nB
 
     ϕP = zeros(Float64, npg^n_dim, n_funcs^n_dim)
     # Para todos os pontos de Gauss, avalia as ϕ locais
     for ξ in 1:(npg^n_dim)
-        ϕP[ξ, :] .= ϕ_geral(P[ξ]...)[1]
+        ϕP[ξ, :] .= ϕ_geral(P[ξ]...)
     end
 
     return ϕP, P, W
@@ -297,6 +297,7 @@ function montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, Φξ, ∇Φξ, n_dim, pseudo_a)
                 soma = pseudo_a(termos_equacao)
 
                 Kᵉ[a, b] += WW * soma * detJ
+                #display(detJ)
             end
         end
     end
@@ -341,6 +342,7 @@ function montaK_geral(malha::Malha, pseudo_a)
 
         # Calcula a matriz local Kᵉ
         montaKᵉ_geral!(Kᵉ, Xᵉ, P, W, ϕξ, ∇ϕξ, n_dim, pseudo_a)
+        #display(Kᵉ)
 
         # Itera sobre as colunas (b) e linhas (a) da matriz local Kᵉ
         @inbounds for b in 1:(2^n_dim)
@@ -444,6 +446,7 @@ function montaF_geral(f::Function, malha::Malha)
 
         # Calcula o vetor local Fᵉ
         montaFᵉ_geral!(Fᵉ, f, Xᵉ, P, W, ϕξ, ∇ϕξ, n_dim)
+        #display(Fᵉ)
 
         # Adiciona a contribuição do elemento finito ao vetor global F
         for a in 1:(2^n_dim)

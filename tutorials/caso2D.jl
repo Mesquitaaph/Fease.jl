@@ -3,7 +3,7 @@ using Plots
 
 function caso_2D()
     # Define o número de sub-intervalos no eixo horizontal e vertical, respectivamente.
-    Nx1, Nx2 = 4, 4
+    Nx1, Nx2 = 4, 3
 
     # Define o tipo da base de funções interpoladoras do subespaço aproximado Vₘ.
     baseType = BaseTypes.linearLagrange
