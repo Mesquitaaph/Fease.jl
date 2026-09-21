@@ -552,13 +552,14 @@ function monta_u_aproximada(c, malha::Malha)
             for dim in 1:n_dim
                 X = Xᵉ[dim]
                 push!(x₀, X[1])
-                push!(x_f, X[end])
+                # v Gambiarra, consertar depois
+                push!(x_f, X[n_dim == 2 ? 3 : end])
             end
 
             if all((x .- x₀) .>= 0) && all((x_f .- x) .> 0)
                 ξ = ξₓ.(x, x₀, x_f)
 
-                soma += dot(d[j], ϕ_geral(ξ...)[1])
+                soma += dot(d[j], ϕ_geral(ξ...))
             end
 
             empty!(x₀)

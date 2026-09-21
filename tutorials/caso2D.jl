@@ -42,31 +42,31 @@ function caso_2D()
     # Estudo da convergencia do erro
 
     # Define função que constrói uma malha que depende só do número de sub-intervalos nos dois eixos.
-    function monta_malha(NX)
-        contorno_completo = reduce(vcat, getQuadSideNodes.(NX..., 1:4))
-        nos_prescritos = [unique(contorno_completo)]
-        fronteira = monta_fronteira_2D_uniforme(a, b, NX..., nos_prescritos)
-        malha = monta_malha_2D_uniforme(baseType, NX..., 1, fronteira)
-        return malha
-    end
+    # function monta_malha(NX)
+    #     contorno_completo = reduce(vcat, getQuadSideNodes.(NX..., 1:4))
+    #     nos_prescritos = [unique(contorno_completo)]
+    #     fronteira = monta_fronteira_2D_uniforme(a, b, NX..., nos_prescritos)
+    #     malha = monta_malha_2D_uniforme(baseType, NX..., 1, fronteira)
+    #     return malha
+    # end
 
     # Estudo será realizado com número de elementos em potências de 2.
-    errsize = 7
-    NE = 2 .^ [2:1:errsize;]
-    H = 1 ./ NE
-    E = zeros(length(NE))
+    # errsize = 7
+    # NE = 2 .^ [2:1:errsize;]
+    # H = 1 ./ NE
+    # E = zeros(length(NE))
 
-    # Define a solução analítica da equação.
-    u = (x₁, x₂) -> sin(π * x₁) * sin(π * x₂)
+    # # Define a solução analítica da equação.
+    # u = (x₁, x₂) -> sin(π * x₁) * sin(π * x₂)
 
-    # Calcula o erro para cada uma das quantidades de elementos finitos.
-    n_dim = 2
-    convergence_test!(E, NE, n_dim, monta_malha, pseudo_a, f, u)
+    # # Calcula o erro para cada uma das quantidades de elementos finitos.
+    # n_dim = 2
+    # convergence_test!(E, NE, n_dim, monta_malha, pseudo_a, f, u)
 
-    # Plota o resultado do estudo
-    Plots.plot(H, E, xaxis=:log10, yaxis=:log10, label="Erro")
-    return Plots.plot!(H, H .^ monta_base(baseType, 2).nB, xaxis=:log10,
-        yaxis=:log10, label="H²")
+    # # Plota o resultado do estudo
+    # Plots.plot(H, E, xaxis=:log10, yaxis=:log10, label="Erro")
+    # return Plots.plot!(H, H .^ monta_base(baseType, 2).nB, xaxis=:log10,
+    #     yaxis=:log10, label="H²")
 end
 
 # Chama a função definida acima.
