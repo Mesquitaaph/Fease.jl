@@ -1,8 +1,9 @@
 using Fease
+using Plots
 
 function caso_2D()
   # Define o número de sub-intervalos no eixo horizontal e vertical, respectivamente.
-  Nx1, Nx2 = 4, 4
+  Nx1, Nx2 = 4, 3
 
   # Define o tipo da base de funções interpoladoras do subespaço aproximado Vₘ.
   baseType = BaseTypes.linearLagrange
@@ -11,8 +12,25 @@ function caso_2D()
   a = (0.0, 0.0)
   b = (1.0, 1.0)
 
+  # Define nos prescritos (neste caso, todo o contorno)
+  nos_prescritos = [
+    getQuadSideNodes(Nx1, Nx2, 1),
+    getQuadSideNodes(Nx1, Nx2, 2),
+    getQuadSideNodes(Nx1, Nx2, 3),
+    getQuadSideNodes(Nx1, Nx2, 4)
+  ]
+
+  # Formata para Vector{Vector{Any}}, para ficar compatível com os algoritmos
+  nos_prescritos = [collect(Iterators.flatten(nos_prescritos))]
+
+  # Monta a fronteira
+  fronteira = Fease.monta_fronteira_2D_uniforme(a, b, Nx1, Nx2, nos_prescritos)
+
+  # Graus de liberdade do problema(de quantas variáveis independentes depende a solução u)
+  n_graus_liberdade = 1
+
   # Define a malha com os valores atribuídos acima.
-  malha = monta_malha_2D_uniforme(baseType, Nx1, Nx2, a, b)
+   malha = Fease.monta_malha_2D_uniforme(baseType, Nx1, Nx2, n_graus_liberdade, fronteira)
 
   # Define os parâmetros da equação a ser resolvida.
   α = 1.0
@@ -35,11 +53,32 @@ function caso_2D()
   # Plota solução aproximada.
   plot_solucao_aproximada(c, malha, false)
 
+  println("\n Feche o plot e pressione Enter pra continuar...")
+  readline()
+
   # Estudo da convergencia do erro
 
   # Define função que constrói uma malha que depende só do número de sub-intervalos nos dois eixos.
   function monta_malha(NX)
-    return monta_malha_2D_uniforme(baseType, NX..., a, b)
+     # Define nos prescritos (neste caso, todo o contorno)
+    nos_prescritos = [
+      getQuadSideNodes(NX[1], NX[2], 1),
+      getQuadSideNodes(NX[1], NX[2], 2),
+      getQuadSideNodes(NX[1], NX[2], 3),
+      getQuadSideNodes(NX[1], NX[2], 4)
+    ]
+
+    # Formata para Vector{Vector{Any}}, para ficar compatível com os algoritmos
+    nos_prescritos = [collect(Iterators.flatten(nos_prescritos))]
+
+    # Monta a fronteira
+    fronteira = Fease.monta_fronteira_2D_uniforme(a, b, Nx1, Nx2, nos_prescritos)
+
+    # Graus de liberdade do problema(de quantas variáveis independentes depende a solução u)
+    n_graus_liberdade = 1
+
+    # Define a malha com os valores atribuídos acima.
+    return Fease.monta_malha_2D_uniforme(baseType, Nx1, Nx2, n_graus_liberdade, fronteira)
   end
 
   # Estudo será realizado com número de elementos em potências de 2.
@@ -56,8 +95,8 @@ function caso_2D()
   convergence_test!(E, NE, n_dim, monta_malha, pseudo_a, f, u)
 
   # Plota o resultado do estudo
-  plot(H, E, xaxis = :log10, yaxis = :log10, label = "Erro")
-  return plot!(H, H .^ monta_base(baseType, 2).nB, xaxis = :log10,
+  Plots.plot(H, E, xaxis = :log10, yaxis = :log10, label = "Erro")
+  return Plots.plot!(H, H .^ monta_base(baseType, 2).nB, xaxis = :log10,
     yaxis = :log10, label = "H²")
 end
 

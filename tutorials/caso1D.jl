@@ -1,4 +1,5 @@
 using Fease
+using Plots
 
 function caso_1D()
   # Define o número de sub-intervalos no eixo horizontal e vertical, respectivamente.
@@ -10,8 +11,11 @@ function caso_1D()
   # Define extremos do intervalo da malha.
   a, b = 0, 1
 
+  # Define a fronteira prescrita homegonea 
+  fronteira = Fease.monta_fronteira_1D_uniforme(a, b, Nx1)
+  
   # Define a malha com os valores atribuídos acima.
-  malha = monta_malha_1D_uniforme(baseType, Nx1, a, b)
+  malha = Fease.monta_malha_1D_uniforme(baseType, Nx1, a, b, fronteira)
 
   # Define os parâmetros da equação a ser resolvida.
   example = 1
@@ -34,11 +38,15 @@ function caso_1D()
   # Plota solução aproximada.
   plot_solucao_aproximada(c, malha, false)
 
+  println("\n Feche o plot e pressione Enter pra continuar...")
+  readline()
+
   # Estudo da convergencia do erro
 
   # Define função que constrói uma malha que depende só do número de sub-intervalos nos dois eixos.
   function monta_malha(NX)
-    return monta_malha_1D_uniforme(baseType, NX[1], a, b)
+    fronteira = Fease.monta_fronteira_1D_uniforme(a, b, NX[1])
+    return monta_malha_1D_uniforme(baseType, NX[1], a, b, fronteira)
   end
 
   # Estudo será realizado com número de elementos em potências de 2.
@@ -55,8 +63,8 @@ function caso_1D()
   convergence_test!(E, NE, n_dim, monta_malha, pseudo_a, f, u)
 
   # Plota o resultado do estudo
-  plot(H, E, xaxis = :log10, yaxis = :log10, label = "Erro")
-  return plot!(H, H .^ monta_base(baseType, 2).nB, xaxis = :log10,
+  Plots.plot(H, E, xaxis = :log10, yaxis = :log10, label = "Erro")
+  return Plots.plot!(H, H .^ monta_base(baseType, 2).nB, xaxis = :log10,
     yaxis = :log10, label = "H²")
 end
 
