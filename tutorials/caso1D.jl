@@ -11,11 +11,11 @@ function caso_1D()
     # Define extremos do intervalo da malha.
     a, b = 0, 1
 
-  # Define a fronteira prescrita homegonea 
-  fronteira = Fease.monta_fronteira_1D_uniforme(a, b, Nx1)
-  
-  # Define a malha com os valores atribuídos acima.
-  malha = Fease.monta_malha_1D_uniforme(baseType, Nx1, a, b, fronteira)
+    # Define a fronteira prescrita homegonea 
+    fronteira = Fease.monta_fronteira_1D_uniforme(a, b, Nx1)
+
+    # Define a malha com os valores atribuídos acima.
+    malha = Fease.monta_malha_1D_uniforme(baseType, Nx1, a, b, fronteira)
 
     # Define os parâmetros da equação a ser resolvida.
     example = 1
@@ -35,38 +35,37 @@ function caso_1D()
     # Imprime solução aproximada.
     show(c)
 
-    # Hotfix da janela QT
-    # ENV["QT_QPA_PLATFORM"] = "xcb"
+    # Plota solução aproximada.
+    plot_solucao_aproximada(c, malha, false)
 
-  println("\n Feche o plot e pressione Enter pra continuar...")
-  readline()
+    println("\n Feche o plot e pressione Enter pra continuar...")
+    readline()
 
-  # Estudo da convergencia do erro
-
-  # Define função que constrói uma malha que depende só do número de sub-intervalos nos dois eixos.
-  function monta_malha(NX)
-    fronteira = Fease.monta_fronteira_1D_uniforme(a, b, NX[1])
-    return monta_malha_1D_uniforme(baseType, NX[1], a, b, fronteira)
-  end
+    # Estudo da convergencia do erro
 
     # Define função que constrói uma malha que depende só do número de sub-intervalos nos dois eixos.
     function monta_malha(NX)
-        return monta_malha_1D_uniforme(baseType, NX[1], a, b)
+        fronteira = Fease.monta_fronteira_1D_uniforme(a, b, NX[1])
+        return monta_malha_1D_uniforme(baseType, NX[1], a, b, fronteira)
     end
 
     # Estudo será realizado com número de elementos em potências de 2.
-    # errsize = 7
-    # NE = 2 .^ [2:1:errsize;]
-    # H = 1 ./ NE
-    # E = zeros(length(NE))
+    errsize = 7
+    NE = 2 .^ [2:1:errsize;]
+    H = 1 ./ NE
+    E = zeros(length(NE))
 
-    # # Define a solução analítica da equação.
-    # (; u) = run_values
+    # Define a solução analítica da equação.
+    (; u) = run_values
 
-  # Plota o resultado do estudo
-  Plots.plot(H, E, xaxis = :log10, yaxis = :log10, label = "Erro")
-  return Plots.plot!(H, H .^ monta_base(baseType, 2).nB, xaxis = :log10,
-    yaxis = :log10, label = "H²")
+    # Calcula o erro para cada uma das quantidades de elementos finitos.
+    n_dim = 1
+    convergence_test!(E, NE, n_dim, monta_malha, pseudo_a, f, u)
+
+    # Plota o resultado do estudo
+    Plots.plot(H, E, xaxis=:log10, yaxis=:log10, label="Erro")
+    return Plots.plot!(H, H .^ monta_base(baseType, 2).nB, xaxis=:log10,
+        yaxis=:log10, label="H²")
 end
 
 caso_1D()

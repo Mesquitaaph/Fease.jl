@@ -7,8 +7,20 @@ function avaliar_quadratura(base_func::Function, npg::Int64, n_funcs::Int64, n_d
     P, W = legendre(npg)
 
     phiP = zeros(npg, n_funcs)
-    for a in 1:n_funcs
-        for ksi in 1:npg
+    for ksi in 1:npg
+        for a in 1:n_funcs
+            phiP[ksi, a] = base_func(P[ksi])[a]
+        end
+    end
+    return phiP, P, W
+end
+
+function avaliar_quadratura_derivada(base_func::Function, npg::Int64, n_funcs::Int64, n_dim::Int64)
+    P, W = legendre(npg)
+
+    phiP = zeros(npg, n_funcs)
+    for ksi in 1:npg
+        for a in 1:n_funcs
             phiP[ksi, a] = base_func(P[ksi])[1][a]
         end
     end
@@ -27,7 +39,7 @@ function montaK_1D(run_values::RunValues, malha)
     npg = 2
 
     phiP, P, W = avaliar_quadratura(Fease.ϕ_1D, npg, 2, 1)
-    dphiP, P, W = avaliar_quadratura(Fease.∇ϕ_1D, npg, 2, 1)
+    dphiP, P, W = avaliar_quadratura_derivada(Fease.∇ϕ_1D, npg, 2, 1)
 
     Ke = zeros(Float64, 2, 2)
     @inbounds for a in 1:2
@@ -101,14 +113,14 @@ end
 
 # Exemplo
 let
-  base = BaseTypes.linearLagrange
-  ne = 8
-  a = 0
-  b = 1
-  fronteira = Fease.monta_fronteira_1D_uniforme(a, b, ne)
-  malha = Fease.monta_malha_1D_uniforme(base, ne, a, b, fronteira)
-  dados = Fease.examples_1D(1)
-  C, EQoLG, xPTne = solveSys_1D(dados, malha)
-  display(C)
-  plot_solucao_aproximada(C, malha)
+    base = BaseTypes.linearLagrange
+    ne = 8
+    a = 0
+    b = 1
+    fronteira = Fease.monta_fronteira_1D_uniforme(a, b, ne)
+    malha = Fease.monta_malha_1D_uniforme(base, ne, a, b, fronteira)
+    dados = Fease.examples_1D(1)
+    C, EQoLG, xPTne = solveSys_1D(dados, malha)
+    display(C)
+    plot_solucao_aproximada(C, malha)
 end
