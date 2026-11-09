@@ -114,6 +114,49 @@ end
 export getQuadSideElements
 
 """
+  monta_fronteira_1D_uniforme(a, b, ne)
+
+Função que gera um objeto Fronteira para o caso regular uniforme, com ambos os nós prescritos por padrão
+
+# Campos
+- `a::Vector{Float64}`: Coordenada do ponto do começo do domínio
+- `b::Vector{Float64}`: Coordenada do ponto do final do domínio
+- `ne::Int64`: Número de elementos 
+- `nos_prescritos::Vector{Vector{Any}}`: Lista de lista de nós prescritos
+"""
+function monta_fronteira_1D_uniforme(a, b, ne)
+
+  coords_quinas = [
+    [a], 
+    [b]
+  ]
+
+  nos_fronteiras = [
+    [1],
+    [ne+1]
+  ]
+
+  elementos_fronteiras = [
+    [1],
+    [ne]
+  ]
+
+  # Generalizar para ficar arbitrário mais ou menos como do caso 2D
+  nos_prescritos = [
+    [1, ne+1]
+  ]
+
+  fronteira = Fronteira(
+    coords_quinas, 
+    nos_fronteiras, 
+    elementos_fronteiras, 
+    nos_prescritos
+  )
+
+  return fronteira
+end
+
+"""
   monta_fronteira_2D_uniforme(a, b, Nx1, Nx2, nos_prescritos = [[], []])
 
 Função que gera um objeto Fronteira para o caso regular uniforme, sem nós prescritos por padrão
@@ -235,33 +278,34 @@ Função que monta a matriz de conectividade local/global (LG). Relaciona a nume
 
 ```
 """
-function montaLG_geral(Nx1::Int64, Nx2::Int64=0)
-    n_dim = 1 + (Nx2 == 0 ? 0 : 1)
-    ne = Nx1 * (Nx2 == 0 ? 1 : Nx2)
+function montaLG_geral(Nx1::Int64, Nx2::Int64 = 0)
+  n_dim = 1 + (Nx2 == 0 ? 0 : 1)
+  ne = Nx1 * (Nx2 == 0 ? 1 : Nx2)
 
-    LG = zeros(Int64, 2^n_dim, ne)
-
+  LG = zeros(Int64, 2^n_dim, ne)
+  
+  if(Nx2 == 0)
+    LG = transpose(hcat(1:ne, 2:ne+1))
+  else  
     # Monta o primeiro bloco
     LG1 = [i for i in 1:Nx1]
     for e in 1:Nx1
-        for a in 1:(2^n_dim)
-            @inbounds LG[a, e] = LG1[e] + ((a - 1) % 2) + (Nx1 + 1) * floor((a - 1) / 2)
-        end
+      for a in 1:(2^n_dim)
+        @inbounds LG[a, e] = LG1[e] + ((a - 1) % 2) + (Nx1 + 1) * floor((a - 1) / 2)
+      end
     end
 
     # Preenche o restante dos blocos baseado no primeiro
     for e in (Nx1+1):ne
-        @inbounds LG[:, e] .= LG[:, e-Nx1] .+ (Nx1 + 1)
+      @inbounds LG[:, e] .= LG[:, e-Nx1] .+ (Nx1 + 1)
     end
 
-    # Hotfix pra construção da ordenação da LG 2D. Talvez o melhor seja refazer a lógica
-    if (Nx2 != 0)
-        swap = LG[3, :]
-        LG[3, :] = LG[4, :]
-        LG[4, :] = swap
-    end
+    swap = LG[3, :]
+    LG[3, :] = LG[4, :]
+    LG[4, :] = swap
+  end
 
-    return LG
+  return LG
 end
 
 """
@@ -398,22 +442,22 @@ Função que constrói uma malha 1D uniforme.
 
 ```
 """
-function monta_malha_1D_uniforme(baseType, ne, a, b)
-    dx = (b[1] - a[1]) / ne
-    X = collect(a:dx:b)
+function monta_malha_1D_uniforme(baseType, ne, a, b, fronteira)
+  dx = (b[1] - a[1]) / ne
+  X = collect(a:dx:b)
 
-    neq, EQ = montaEQ_geral(ne)
-    LG = montaLG_geral(ne)
-    EQoLG = EQ[LG]
+  neq, EQ = montaEQ_geral(ne)
+  EQ = reshape(EQ, (1, length(EQ)))
+  LG = montaLG_geral(ne)
+  EQoLG = EQ[LG]
 
     coords = Tuple([X])
 
     n_dim = 1
     Nx = (; ne)
 
-    base = monta_base(baseType, ne)
-    fronteira = Fronteira([[a[1]], [b[1]]], [[1, neq]], [[1, ne]], [[1, neq]])
-    return Malha(base, ne, neq, coords, dx, EQ, LG, EQoLG, a, b, n_dim, Nx, fronteira)
+  base = monta_base(baseType, ne)
+  return Malha(base, ne, neq, coords, dx, EQ, LG, EQoLG, a, b, n_dim, Nx, fronteira)
 end
 
 """

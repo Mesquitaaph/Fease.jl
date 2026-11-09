@@ -1,4 +1,7 @@
 using Fease
+using Plots 
+using SparseArrays
+using GaussQuadrature
 
 function x₁_de_ξ(ξ₁::Float64, h₁::Float64, p₁::Float64)::Float64
   x₁ = p₁ + (h₁ / 2) * (ξ₁ + 1)
@@ -25,17 +28,17 @@ function monta_Kᵉ_quadrilatero!(
 
     # Calcula as derivadas de ϕ em relação a ξ₂ no ponto (ξ₁,ξ₂)
     # Obs.: As funções em ∂ϕ_∂ξ₂ dependem apenas de ξ₁
-    vec_∂ϕ_∂ξ₂ = ∂ϕ_∂ξ₂(ξ₁)
+    vec_∂ϕ_∂ξ₂ = Fease.∂ϕ_∂ξ₂(ξ₁)
 
     for j in 1:length(P)  # Pontos de quadratura no eixo ξ₂
       ξ₂ = P[j]
 
       # Vetor com o valor em (ξ₁,ξ₂) das funções ϕ₁, ϕ₂, ϕ₃ e ϕ₄
-      vec_ϕ = ϕ_2D(ξ₁, ξ₂)
+      vec_ϕ = Fease.ϕ_2D(ξ₁, ξ₂)
 
       # Calcula as derivadas de ϕ em relação a ξ₁ no ponto (ξ₁,ξ₂)
       # Obs.: As funções em ∂ϕ_∂ξ₁ dependem apenas de ξ₂
-      vec_∂ϕ_∂ξ₁ = ∂ϕ_∂ξ₁(ξ₂)
+      vec_∂ϕ_∂ξ₁ = Fease.∂ϕ_∂ξ₁(ξ₂)
 
       # Calcula as entradas da matriz Jacobiana
       ∂x₁_∂ξ₁ = dot(X1e, vec_∂ϕ_∂ξ₁)
@@ -129,17 +132,17 @@ function monta_Fᵉ_quadrilatero!(Fᵉ::Vector{Float64}, f::Function, X1e::Vecto
 
     # Calcula as derivadas de ϕ em relação a ξ₂ no ponto (ξ₁,ξ₂)
     # Obs.: As funções em ∂ϕ_∂ξ₂ dependem apenas de ξ₁
-    vec_∂ϕ_∂ξ₂ = ∂ϕ_∂ξ₂(ξ₁)
+    vec_∂ϕ_∂ξ₂ = Fease.∂ϕ_∂ξ₂(ξ₁)
 
     for j in 1:length(P)      # Loop sobre os pontos de quadratura no eixo ξ₂
       ξ₂ = P[j]
 
       # Vetor com o valor em (ξ₁,ξ₂) das funções ϕ₁, ϕ₂, ϕ₃ e ϕ₄
-      vec_ϕ = ϕ_2D(ξ₁, ξ₂)
+      vec_ϕ = Fease.ϕ_2D(ξ₁, ξ₂)
 
       # Calcula as derivadas de ϕ em relação a ξ₁ no ponto (ξ₁,ξ₂)
       # Obs.: As funções em ∂ϕ_∂ξ₁ dependem apenas de ξ₂
-      vec_∂ϕ_∂ξ₁ = ∂ϕ_∂ξ₁(ξ₂)
+      vec_∂ϕ_∂ξ₁ = Fease.∂ϕ_∂ξ₁(ξ₂)
 
       # Coordenadas físicas (x₁, x₂) mapeadas a partir de (ξ₁, ξ₂)
       x₁ = dot(X1e, vec_ϕ)
@@ -327,7 +330,7 @@ function exemplo_malha2D(Nx1, Nx2; ruido = true)
     malha2D_adiciona_ruido!(X₁, X₂, h₁, h₂)
   end
   # Define a matriz de conectividade local/global (LG)
-  LG = monta_LG_2D(Nx1, Nx2)
+  LG = Fease.monta_LG_2D(Nx1, Nx2)
 
   # Cria a figura da malha 2D
   fig = plot_malha2D(X₁, X₂, LG)
@@ -335,13 +338,49 @@ function exemplo_malha2D(Nx1, Nx2; ruido = true)
   return fig
 end
 
-let
+# Suprimido o teste da função malha2D em detrimento da 
+# mais genérica no pacote (monta_malha_2D_uniforme)
+#
+# let
+#   Nx1 = 4
+#   Nx2 = 3
+
+#   fig = exemplo_malha2D(Nx1, Nx2; ruido = false)  # Aqui a função é chamada inicialmente
+#   xlabel!(fig, "x_1")
+#   ylabel!(fig, "x_2")
+#   yticks!(fig, 0:(1/Nx2):1)             # Define ticks do eixo x₂
+#   xticks!(fig, 0:(1/Nx1):1, rotation = 45)# Define ticks do eixo x₁
+#   Plots.plot(fig)
+# end
+
+
+let 
+  base = BaseTypes.linearLagrange
   Nx1 = 4
   Nx2 = 3
+  a = [0.0, 0.0]
+  b = [1.0, 1.0]
 
-  fig = exemplo_malha2D(Nx1, Nx2; ruido = false)  # Aqui a função é chamada inicialmente
-  xlabel!(fig, "x_1")
-  ylabel!(fig, "x_2")
-  yticks!(fig, 0:(1/Nx2):1)             # Define ticks do eixo x₂
-  xticks!(fig, 0:(1/Nx1):1, rotation = 45)# Define ticks do eixo x₁
+  nos_prescritos = [
+    getQuadSideNodes(Nx1, Nx2, 1),
+    getQuadSideNodes(Nx1, Nx2, 2),
+    getQuadSideNodes(Nx1, Nx2, 3),
+    getQuadSideNodes(Nx1, Nx2, 4)
+  ]
+
+  nos_prescritos = [collect(Iterators.flatten(nos_prescritos))]
+
+  fronteira = Fease.monta_fronteira_2D_uniforme(a, b, Nx1, Nx2, nos_prescritos)
+  malha = Fease.monta_malha_2D_uniforme(base, Nx1, Nx2, 1, fronteira)
+  dados = Fease.examples_2D(1)
+
+  println(nos_prescritos)
+
+  K = monta_K_quadrilatero(dados, malha)
+  F = monta_F_quadrilatero(dados, malha)
+  c = K\F 
+
+  # Função local deste arquivo, não confundir com a definida no arquivo plots.jl
+  display(c)
+  plot_solução_aproximada([c; 0], Nx1, Nx2, malha.EQoLG)
 end
