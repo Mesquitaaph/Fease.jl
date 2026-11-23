@@ -41,10 +41,10 @@ end
 Objetos que agrupam informações sobre a fronteira.
 
 # Campos
-- `coords_quinas::Vector{Vector{Float64}}`: Coordenadas das quinas do quadrilátero
-- `nos_fronteiras::Vector{Vector{Int64}}`: Numeração global dos nós que compõem cada lado do quadrilátero
-- `elementos_fronteiras::Vector{Vector{Int64}}`: Numeração dos elementos que compõem cada lado do quadrilátero
-- `nos_prescritos`: Numeração dos elementos que compõem cada lado do quadrilátero
+- `coords_quinas::Vector{Vector{Float64}}`: Lista das coordenadas das quinas do quadrilátero.
+- `nos_fronteiras::Vector{Vector{Int64}}`: Lista contendo a numeração global dos nós que compõem cada lado do quadrilátero.
+- `elementos_fronteiras::Vector{Vector{Int64}}`: Lista contendo a numeração dos elementos que compõem cada lado do quadrilátero.
+- `nos_prescritos::`: Lista contendo a numeração global dos nós que possuem valor prescrito.
 """
 struct Fronteira
     coords_quinas::Vector{Vector{Float64}}
@@ -57,11 +57,18 @@ end
   getQuadSideNodes(Nx1::Int64, Nx2::Int64, side::Int64)::Vector{Union{Any, Int64}}
 
 Função que recupera a numeração de todos os nós de um lado de um quadrilátero
+    Lado 1 -> Fronteira de baixo
+    Lado 2 -> Fronteira da direita
+    Lado 3 -> Fronteira de cima
+    Lado 4 -> Fronteira da esquerda
 
-# Campos
+# Parâmetros
 - `Nx1::Int64`: Número de elementos da direção X
 - `Nx2::Int64`: Número de elementos da direção Y
 - `side::Int64`: Qual o lado de interesse do quadrilátero. Numerado de 1 à 4, começando pelo de baixo e continuando em sentido anti-horário
+
+# Retorno
+- `nodes::Array`: Lista contendo os números dos nós de um lado.
 """
 function getQuadSideNodes(Nx1::Int64, Nx2::Int64, side::Int64)::Vector{Union{Any,Int64}}
     nodes = []
@@ -86,12 +93,19 @@ export getQuadSideNodes
 """
   getQuadSideElements(Nx1::Int64, Nx2::Int64, side::Int64)::Vector{Union{Any, Int64}}
 
-Função que recupera a numeração de todos os elementos de um lado de um quadrilátero
+Função que recupera a numeração de todos os elementos de um lado de um quadrilátero.
+    Lado 1 -> Fronteira de baixo
+    Lado 2 -> Fronteira da direita
+    Lado 3 -> Fronteira de cima
+    Lado 4 -> Fronteira da esquerda
 
-# Campos
+# Parâmetros
 - `Nx1::Int64`: Número de elementos da direção X
 - `Nx2::Int64`: Número de elementos da direção Y
 - `side::Int64`: Qual o lado de interesse do quadrilátero. Numerado de 1 à 4, começando pelo de baixo e continuando em sentido anti-horário
+
+# Retorno
+- `elements::Array`: Lista contendo os números dos elementos de um lado.
 """
 function getQuadSideElements(Nx1::Int64, Nx2::Int64, side::Int64)::Vector{Union{Any,Int64}}
     elements = []
@@ -116,13 +130,16 @@ export getQuadSideElements
 """
   monta_fronteira_1D_uniforme(a, b, ne)
 
-Função que gera um objeto Fronteira para o caso regular uniforme, com ambos os nós prescritos por padrão
+Função que gera um objeto Fronteira para o caso regular uniforme, com ambos os nós prescritos por padrão.
 
-# Campos
+# Parâmetros
 - `a::Vector{Float64}`: Coordenada do ponto do começo do domínio
 - `b::Vector{Float64}`: Coordenada do ponto do final do domínio
 - `ne::Int64`: Número de elementos 
 - `nos_prescritos::Vector{Vector{Any}}`: Lista de lista de nós prescritos
+
+# Retorno
+- `fronteira::Fronteira`: Objeto Fronteira gerado com os parâmetros informados.
 """
 function monta_fronteira_1D_uniforme(a, b, ne)
 
@@ -157,18 +174,21 @@ function monta_fronteira_1D_uniforme(a, b, ne)
 end
 
 """
-  monta_fronteira_2D_uniforme(a, b, Nx1, Nx2, nos_prescritos = [[], []])
+  monta_fronteira_2D_uniforme(a, b, Nx1, Nx2, nos_prescritos = [[]])
 
-Função que gera um objeto Fronteira para o caso regular uniforme, sem nós prescritos por padrão
+Função que gera um objeto Fronteira para o caso regular uniforme, sem nenhum nó prescrito por padrão.
 
-# Campos
+# Parâmetros
 - `a::Vector{Float64}`: Coordenadas do ponto do começo do domínio (ponto inferior esquerdo)
 - `b::Vector{Float64}`: Coordenadas do ponto do final do domínio (ponto superior direito)
 - `Nx1::Int64`: Número de elementos da direção X
 - `Nx2::Int64`: Número de elementos da direção Y
 - `nos_prescritos::Vector{Vector{Any}}`: Lista de lista de nós prescritos, uma lista para cada grau de liberdade.
+
+# Retoro
+- `fronteira::Fronteira`: Objeto Fronteira gerado com os parâmetros informados para um domínio quadrilátero.
 """
-function monta_fronteira_2D_uniforme(a, b, Nx1, Nx2, nos_prescritos=[])
+function monta_fronteira_2D_uniforme(a, b, Nx1, Nx2, nos_prescritos=[[]])
     ponto_inf_esq = [a[1], a[2]]
     ponto_inf_dir = [b[1], a[2]]
     ponto_sup_dir = [b[1], b[2]]
@@ -209,12 +229,15 @@ export monta_fronteira_2D_uniforme
 """
   getSidefromNode(node::Int64, Nx1::Int64, Nx2::Int64)
 
-Função que retorna em quais fronteiras um nó está (possivelmente, nenhum)
+Função que retorna em quais fronteiras um nó está (possivelmente, nenhuma)
 
-# Campos
+# Parâmetros
 - `node::Int64`: Número global do nó
 - `Nx1::Int64`: Número de elementos da direção X
 - `Nx2::Int64`: Número de elementos da direção Y
+
+# Retorno
+- `sides::Array`: Lista com o número de cada fronteira tangenciada pelo nó.
 """
 function getSidefromNode(node::Int64, Nx1::Int64, Nx2::Int64)
     sides = []
@@ -242,13 +265,18 @@ export getSidefromNode
 """
   getBoundariesOfElement(e::Int64, Nx1::Int64, Nx2::Int64, LG)
 
-Função que retorna em quais fronteiras um elemento está (possivelmente, nenhum)
+Função que retorna em quais fronteiras um elemento está (possivelmente, nenhuma)
 
-# Campos
+# Parâmetros
 - `e::Int64`: Número do elemento
 - `Nx1::Int64`: Número de elementos da direção X
 - `Nx2::Int64`: Número de elementos da direção Y
 - `LG::Matrix{Int64}`: Matriz de conectividade local/global
+
+# Retorno
+
+- `boundaries::Array`: Lista com o número de cada fronteira tangenciada pelo elemento.
+
 """
 function getBoundariesOfElement(e::Int64, Nx1::Int64, Nx2::Int64, LG)
     boundaries = []
@@ -345,7 +373,7 @@ end
 """
     montaEQ_geral(Nx1::Int64, Nx2::Int64 = 0)
 
-Função que monta o vetor com as reenumerações das funções globais ϕ.
+Função que monta o vetor com as reenumerações das funções globais ϕ. Esta implementação considera que toda a fronteira é prescrita homogênea.
 
 # Parâmetros
 - `Nx1::Int64`: Número de subdivisões da malha no primeiro eixo.
@@ -424,15 +452,16 @@ function montaEQ_2D_Mult(Nx1::Int64, Nx2::Int64, n_dir::Int64, nos_prescritos)
 end
 
 """
-    monta_malha_1D_uniforme(baseType, Nx1, a, b)::Malha
+    monta_malha_1D_uniforme(baseType, ne, a, b, fronteira)
 
 Função que constrói uma malha 1D uniforme.
 
 # Parâmetros
 - `baseType::`: O tipo da base das funções interpoladoras.
-- `Nx1::Int64`: Número de subdivisões da malha no primeiro eixo.
+- `ne::Int64`: Número de subdivisões da malha no eixo.
 - `a::Tuple`: Coordenada do início do intervalo uniforme.
 - `b::Tuple`: Coordenada do final do intervalo uniforme.
+- `fronteira::Fronteira`: Fronteira do domínio de interesse.
 
 # Retorno
 - `malha::Malha`: Uma malha 1D uniforme dentro do intervalo `[a,b]`.
@@ -461,7 +490,7 @@ function monta_malha_1D_uniforme(baseType, ne, a, b, fronteira)
 end
 
 """
-    monta_malha_2D_uniforme(baseType, Nx1, Nx2, a::Tuple, b::Tuple)::Malha
+    monta_malha_2D_uniforme(baseType, Nx1, Nx2, n_graus_liberdade::Int64, fronteira::Fronteira)::Malha
 
 Função que constrói uma malha 2D uniforme.
 
@@ -469,11 +498,11 @@ Função que constrói uma malha 2D uniforme.
 - `baseType::`: O tipo da base das funções interpoladoras.
 - `Nx1::Int64`: Número de subdivisões da malha no primeiro eixo.
 - `Nx2::Int64`: Número de subdivisões da malha no segundo eixo. 
-- `n_graus_liberdade::Int64`: Número de graus de liberdade em cada nó 
-- `nos_prescritos::Vector{Vector{Any}}`: Lista de nós prescritos em cada direção (grau de liberdade). 
+- `n_graus_liberdade::Int64`: Número de graus de liberdade em cada nó.
+- `fronteira::Fronteira`: Fronteira do domínio de interesse.
 
 # Retorno
-- `malha::Malha`: Uma malha 2D uniforme dentro do intervalo `[a,b]`.
+- `malha::Malha`: Uma malha 2D uniforme com as informações de fronteira fornecidas. Consultar `monta_fronteira_2D_uniforme`
 
 # Exemplo
 ```@example
@@ -499,11 +528,8 @@ function monta_malha_2D_uniforme(baseType, Nx1, Nx2, n_graus_liberdade::Int64,
     X₁ = [x₁[i] for i in 1:(Nx1+1), j in 1:(Nx2+1)]
     X₂ = [x₂[j] for i in 1:(Nx1+1), j in 1:(Nx2+1)]
 
-    if (mapreduce(isempty, &, fronteira.nos_prescritos))
-        neq, EQ = montaEQ_geral(Nx1, Nx2)
-    else
-        neq, EQ = montaEQ_2D_Mult(Nx1, Nx2, n_graus_liberdade, fronteira.nos_prescritos)
-    end
+    neq, EQ = montaEQ_2D_Mult(Nx1, Nx2, n_graus_liberdade, fronteira.nos_prescritos)
+    
 
     LG = montaLG_geral(Nx1, Nx2)
     EQoLG = EQ[LG]
@@ -517,19 +543,15 @@ function monta_malha_2D_uniforme(baseType, Nx1, Nx2, n_graus_liberdade::Int64,
 end
 
 """
-    monta_malha_2D_uniforme(baseType, Nx1, Nx2, a::Tuple, b::Tuple)::Malha
+    malha2D_adiciona_ruido(malha::Malha)::Malha
 
-Função que constrói uma malha 2D uniforme.
+Função que adiciona ruído nas coordenadas dos nós da malha. Ideal para testar implementações sobre quadriláteros genéricos.
 
 # Parâmetros
-- `baseType::`: O tipo da base das funções interpoladoras.
-- `Nx1::Int64`: Número de subdivisões da malha no primeiro eixo.
-- `Nx2::Int64`: Número de subdivisões da malha no segundo eixo. 
-- `a::Tuple`: Coordenada do início do intervalo
-- `b::Tuple`: Coordenada do final do intervalo 
+- `malha::Malha`: Uma malha 2D.
 
 # Retorno
-- `malha::Malha`: Uma malha 2D uniforme dentro do intervalo `[a,b]`.
+- `malha::Malha`: Uma nova malha com pequena variação nas coordenadas dos nós, e idêntica quanto a todos os outros campos.
 
 # Exemplo
 ```@example
