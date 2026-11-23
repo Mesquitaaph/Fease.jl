@@ -26,40 +26,40 @@ function ϕ_geral(P...)
 end
 
 """
-    ϕ_1D(P...)
+    ϕ_1D(ξ)
     
-Calcula os valores das funções interpoladoras `ϕ` no ponto `P`, unidimensional.
+Calcula os valores das funções interpoladoras `ϕ` no ponto `ξ`, unidimensional.
 
 # Parâmetros
-- `P...`: Ponto onde as funções interpoladoras serão calculadas.
+- `ξ`: Ponto onde as funções interpoladoras serão calculadas.
 
 # Retorno
-- `ϕ::Vector{Float64}`: Vetor com os valores das funções interpoladoras `ϕ` no ponto `P`.
+- `ϕ::Vector{Float64}`: Vetor com os valores das funções interpoladoras `ϕ` no ponto `ξ`.
 
 # Exemplo
 ```@example
 
 ```
 """
-function ϕ_1D(P...)::Vector{Float64}
+function ϕ_1D(ξ)::Vector{Float64}
     # Retorna diretamente o Vector para o caso 1D
     return [
-        (1 - P[1]) / 2.0,
-        (1 + P[1]) / 2.0
+        (1 - ξ) / 2.0,
+        (1 + ξ) / 2.0
     ]
 end
 
 """
     ϕ_2D(ξ₁::Float64, ξ₂::Float64)::Vector{Float64}
     
-Calcula os valores das funções interpoladoras `ϕ` no ponto `P`, unidimensional.
+Calcula os valores das funções interpoladoras `ϕ` no ponto `(ξ₁, ξ₂)`, bidimensional.
 
 # Parâmetros
 - `ξ₁::Float64`: Valor no primeiro eixo do ponto onde as funções interpoladoras serão calculadas.
 - `ξ₂::Float64`: Valor no segundo eixo do ponto onde as funções interpoladoras serão calculadas.
 
 # Retorno
-- `ϕ::Vector{Float64}`: Vetor com os valores das funções interpoladoras `ϕ` no ponto `P`.
+- `ϕ::Vector{Float64}`: Vetor com os valores das funções interpoladoras `ϕ` no ponto `(ξ₁, ξ₂)`.
 
 # Exemplo
 ```@example
@@ -79,27 +79,26 @@ end
 export ϕ_2D
 
 """
-    ∇ϕ_1D(P...)
+    ∇ϕ_1D(ξ)
 
-Calcula os valores das derivadas das funções interpoladoras `ϕ` no ponto `P`.
+Calcula os valores das derivadas das funções interpoladoras `ϕ` no ponto `ξ`.
 
 # Parâmetros
-- `P...`: Ponto onde as funções interpoladoras serão calculadas.
+- `ξ...`: Ponto onde as funções interpoladoras serão calculadas.
 
 # Retorno
-- `∇ϕ::Vector{Float64}`: Vetor com os valores das derivadas das funções interpoladoras `ϕ` no ponto `P`.
+- `∇ϕ::Vector{Float64}`: Vetor com os valores das derivadas das funções interpoladoras `ϕ` no ponto `ξ`.
 
 # Exemplo
 ```@example
 
 ```
 """
-function ∇ϕ_1D(P...)
+function ∇ϕ_1D(ξ)
     # É apenas a definição das dϕ lagrange linear para o caso 1D
-    n_dim = length(P)
-    dphis = 2.0^-n_dim * [
-        -1,
-        1
+    dphis = [
+        -1/2.0,
+         1/2.0
     ]
     return (; dphis)
 end
@@ -152,14 +151,14 @@ end
 """
     ∇ϕ_2D(ξ₁::Float64, ξ₂::Float64)
 
-Calcula os valores do gradiente das funções interpoladoras `ϕ` no ponto `P`.
+Calcula os valores do gradiente das funções interpoladoras `ϕ` no ponto `(ξ₁, ξ₂)`.
 
 # Parâmetros
 - `ξ₁::Float64`: Valor no primeiro eixo do ponto onde as funções interpoladoras serão calculadas.
 - `ξ₂::Float64`: Valor no segundo eixo do ponto onde as funções interpoladoras serão calculadas.
 
 # Retorno
-- `∇ϕ::Tuple`: Tupla com os valores do gradiente das funções interpoladoras `ϕ` no ponto `P`.
+- `∇ϕ::Tuple`: Tupla com os valores do gradiente das funções interpoladoras `ϕ` no ponto `(ξ₁, ξ₂)`.
 
 # Exemplo
 ```@example
