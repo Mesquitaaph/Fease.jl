@@ -1,4 +1,19 @@
-function erro_L2(malha::Malha, u, C)
+"""
+    erro_L2(malha::Malha, u, C)
+
+Calcula o erro integral entre a solução analítica e a solução aproximada encontrada pelo método, na norma L2.
+OBS: A interpolação está sendo feita internamente (hardcoded), com as entradas de C e as ϕ's Lagrange Linear. Verificar integração com `monta_u_aproximada`.
+
+# Parâmetros
+- `malha::Malha`: Malha onde o problema foi resolvido.
+- `u::Function`: Solução analítica do problema.
+- `C::Vector{Float64}`: Vetor de coeficientes da solução do sistema linear.
+
+# Retorno
+- `EL2::Float64`: Erro integral.
+
+"""
+function erro_L2(malha::Malha, u, C)      
     npg = 5
 
     (; ne, neq, n_dim, base) = malha
@@ -40,10 +55,10 @@ function erro_L2(malha::Malha, u, C)
 
     EL2 = sqrt(EL2)
 
-    EH01 = 0.0
+    # EH01 = 0.0
     # EH01 = sqrt(h/2 * sum(W' * ((u_x.(xPTne) - (2/h .* dphiP * cEQoLG)).^2)))
 
-    return EL2, EH01
+    return EL2#, EH01
 end
 
 """
@@ -64,41 +79,7 @@ Realiza o estudo da convergência do erro para a solução aproximada da equaç�
 Altera o vetor `E`.
 
 # Exemplo
-```@example
-  # Define o tipo da base de funções interpoladoras do subespaço aproximado Vₘ.
-  baseType = BaseTypes.linearLagrange
 
-  # Define extremos do intervalo da malha.
-  a = (0.0, 0.0)
-  b = (1.0, 1.0)
-
-  # Define os parâmetros da equação a ser resolvida.
-  α = 1.0
-  β = 1.0
-  f = (x₁, x₂) -> (2 * α * π^2 + β) * sin(π * x₁) * sin(π * x₂)
-  u = (x₁, x₂) -> sin(π * x₁) * sin(π * x₂)
-
-  # Define o pseudo operador linear a(u,v).
-  function pseudo_a(termos_equacao)
-    (; ∇u, ∇v, u, v) = termos_equacao
-
-    return β * dot(u, v) + α * dot(∇u, ∇v)
-  end
-
-  # Define a função que constrói uma malha que depende só do número de sub-intervalos nos dois eixos.
-  function monta_malha(NX)
-    return monta_malha_2D_uniforme(baseType, NX..., a, b)
-  end
-
-  # Estudo será realizado com número de elementos em potências de 2.
-  errsize = 7
-  NE = 2 .^ [2:1:errsize;]
-  H = 1 ./ NE
-  E = zeros(length(NE))
-
-  # Calcula o erro para cada uma das quantidades de elementos finitos.
-  convergence_test!(E, NE, 2, monta_malha, pseudo_a, f, u)
-```
 """
 function convergence_test!(E, NE, n_dim, monta_malha, pseudo_a, f, u)
     fill!(E, 0.0)
@@ -117,6 +98,6 @@ function convergence_test!(E, NE, n_dim, monta_malha, pseudo_a, f, u)
 
         C = solve_sys(f, malha, pseudo_a)
 
-        E[i], dE[i] = erro_L2(malha, u, C)
+        E[i] = erro_L2(malha, u, C)
     end
 end
