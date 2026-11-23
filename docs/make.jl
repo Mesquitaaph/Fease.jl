@@ -57,7 +57,7 @@ makedocs(;
         "Método de Elementos Finitos" => "metodo-elementos-finitos.md",
         Tutoriais,
         Dev_Colab,
-        "Referencias" => "reference.md",
+        "Referências" => "reference.md",
         "Contatos" => "contatos.md",
         # [
         #   nice_name(file) => file for
