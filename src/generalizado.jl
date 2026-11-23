@@ -1,5 +1,5 @@
 """
-    jacobian(n_dim::Int, Xᵉ::Vector, ∇Φξ::Tuple{Matrix{Float64}}, ξ::Int)
+    jacobiano(n_dim::Int, Xᵉ::Vector, ∇Φξ::Tuple{Matrix{Float64}}, idx_pt::Int)
 
 Calcula a matriz jacobiana, assim como seu determinante, 
 no domínio do elemento determinado pelas coordenadas em `Xᵉ`.
@@ -8,7 +8,7 @@ no domínio do elemento determinado pelas coordenadas em `Xᵉ`.
 - `n_dim::Int`: Número de dimensões do espaço.
 - `Xᵉ::Vector`: Coordenadas dos vértices do elemento finito Ωᵉ. Cada entrada do vetor representa um eixo.
 - `∇Φξ::Tuple{Matrix{Float64}}`: N-upla de matrizes `npg x n_funcs` com a avaliaçao das `∂ϕ` nos pontos de Gauss-Legendre.
-- `ξ::Int`: Representa o número do ponto de Gauss.
+- `idx_pt::Int`: Representa o número do ponto de Gauss.
 
 # Retorno
 - `M::Matrix{Float64}`: Matriz jacobiana.
@@ -19,13 +19,13 @@ no domínio do elemento determinado pelas coordenadas em `Xᵉ`.
 
 ```
 """
-function jacobiano(n_dim, Xᵉ, ∇Φξ, ξ)
+function jacobiano(n_dim, Xᵉ, ∇Φξ, idx_pt)
     # Monta a matriz jacobiana
     # Implementação original (funciona 1D, não funciona 2D)
     M = Matrix{Float64}(undef, n_dim, n_dim)
     for i in 1:n_dim
         for j in 1:n_dim
-            M[i, j] = dot(Xᵉ[i], ∇Φξ[j][ξ, :])
+            M[i, j] = dot(Xᵉ[i], ∇Φξ[j][idx_pt, :])
         end
     end
 
@@ -186,14 +186,14 @@ export mudanca_variavel_xξ
 """
     elem_coords(malha::Malha, e::Int)
 
-Encontra as coordenadas dos nós do elemento finito `e` e os retorna, junto a EQoLG referente.
+Encontra as coordenadas dos nós do elemento finito `e` e os retorna, junto dos índices das equações associadas (de EQ)
 
 # Parâmetros
 - `malha::Malha`: A malha sob a qual está sendo solucionado o problema.
 - `e::Int`: O identificador numérico do elemento finito Ωᵉ.
 
 # Retorno
-- `eqs_idx::`: EQoLG para o elemento `e` passado como parâmetro
+- `eqs_idx::Vector`: Lista dos índices das equações associadas a cada um dos nós do elemento
 - `Xᵉ::Vector`: Coordenadas dos vértices do elemento finito Ωᵉ. Cada entrada do vetor representa um eixo.
 
 # Exemplo
