@@ -1,3 +1,43 @@
+"""
+    struct RunValues
+
+Valores que definem parâmetros de um problema.
+
+# Campos
+- `α::Float64`: Coeficiente α
+- `β::Float64`: Coeficiente β
+- `γ::Float64`: Coeficiente γ
+- `f::Function`: Função que represnenta o lado direito da equação do problema.
+- `u::Function`: Função que representa a solução analítica da equação do problema.
+"""
+struct RunValues
+  α
+  β
+  γ
+  f::Function
+  u::Function
+end
+
+"""
+    struct EquationTerms
+
+Referências a termos da equação.
+
+# Campos
+- `u::`: Representa um dos pares do operador linear a(u,v).
+- `v::`: Representa um dos pares do operador linear a(u,v).
+- `∇u::`: Representa o gradiente de um dos pares do operador linear a(u,v).
+- `∇v::`: Representa o gradiente de um dos pares do operador linear a(u,v).
+- `x::`: Termo que permite representar um termo qualquer da equação que dependa de valores no domínio.
+"""
+struct TermosEquacao
+  u
+  v
+  ∇u
+  ∇v
+  x
+end
+
 function Example(alpha, beta, gamma, a, b, u, u_x, f)
   return (alpha = alpha, beta = beta, gamma = gamma, a = a, b = b, u = u, u_x = u_x, f = f)
 end
@@ -75,44 +115,4 @@ function examples_2D(case)
   else
     error("Exemplo inexistente")
   end
-end
-
-"""
-    struct RunValues
-
-Valores que definem parâmetros de um problema.
-
-# Campos
-- `α::Float64`: Coeficiente α
-- `β::Float64`: Coeficiente β
-- `γ::Float64`: Coeficiente γ
-- `f::Function`: Função que represnenta o lado direito da equação do problema.
-- `u::Function`: Função que representa a solução analítica da equação do problema.
-"""
-struct RunValues
-  α
-  β
-  γ
-  f::Function
-  u::Function
-end
-
-"""
-    struct EquationTerms
-
-Referências a termos da equação.
-
-# Campos
-- `u::`: Representa um dos pares do operador linear a(u,v).
-- `v::`: Representa um dos pares do operador linear a(u,v).
-- `∇u::`: Representa o gradiente de um dos pares do operador linear a(u,v).
-- `∇v::`: Representa o gradiente de um dos pares do operador linear a(u,v).
-- `x::`: Termo que permite representar um termo qualquer da equação que dependa de valores no domínio.
-"""
-struct TermosEquacao
-  u
-  v
-  ∇u
-  ∇v
-  x
 end
